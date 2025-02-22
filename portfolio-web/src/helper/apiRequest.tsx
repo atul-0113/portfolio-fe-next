@@ -1,14 +1,16 @@
 interface ApiRequestConfig {
     endpoint: string;
-    method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
     body?: any;
     headers?: Record<string, string>;
 }
-const BASE_URL: string = "http://localhost/"
-const apiRequest = async ({ endpoint, method = 'GET', body, headers = {}}: ApiRequestConfig) => {
+
+const BASE_URL: string = "http://localhost:3001/api/";
+
+// Base function for API requests
+const apiRequest = async ({ endpoint, method, body, headers }: ApiRequestConfig & { method: string }) => {
     try {
         const config: RequestInit = {
-            method: method as RequestInit['method'], // Ensure TypeScript understands the method type
+            method,
             headers: {
                 'Content-Type': 'application/json',
                 ...headers
@@ -16,8 +18,8 @@ const apiRequest = async ({ endpoint, method = 'GET', body, headers = {}}: ApiRe
             body: body ? JSON.stringify(body) : undefined,
         };
 
-        const response = await fetch(`/api/${endpoint}`, config);
-        
+        const response = await fetch(`${BASE_URL}${endpoint}`, config);
+        console.log(response,"resp")
         let data;
         try {
             data = await response.json();
@@ -36,4 +38,29 @@ const apiRequest = async ({ endpoint, method = 'GET', body, headers = {}}: ApiRe
     }
 };
 
-export default apiRequest;
+// Method to perform GET requests
+export const get = async (endpoint: string, headers?: Record<string, string>) => {
+    return apiRequest({ endpoint, method: 'GET', headers });
+};
+
+// Method to perform POST requests
+export const post = async (endpoint: string, body: any, headers?: Record<string, string>) => {
+    return apiRequest({ endpoint, method: 'POST', body, headers });
+};
+
+// Method to perform PUT requests
+export const put = async (endpoint: string, body: any, headers?: Record<string, string>) => {
+    return apiRequest({ endpoint, method: 'PUT', body, headers });
+};
+
+// Method to perform PATCH requests
+export const patch = async (endpoint: string, body: any, headers?: Record<string, string>) => {
+    return apiRequest({ endpoint, method: 'PATCH', body, headers });
+};
+
+// Method to perform DELETE requests
+export const del = async (endpoint: string, headers?: Record<string, string>) => {
+    return apiRequest({ endpoint, method: 'DELETE', headers });
+};
+
+export default { get, post, put, patch, del };

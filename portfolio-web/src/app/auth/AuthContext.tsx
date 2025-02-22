@@ -2,12 +2,14 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import * as ApiCall from '@/helper/apiRequest';
 
 // Define the type for the user object
 interface User {
-  uid: string;
+  id: string;
   email: string | null;
-  // Add other user properties as needed
+  role:string;
+  token:string;
 }
 
 interface AuthContextType {
@@ -47,27 +49,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    console.log(email,password,"Pass")
-    //Api Call
-    
-    const fakeUser = { uid: '1', email , password }; // Replace with actual user data
-    localStorage.setItem('user', JSON.stringify(fakeUser));
-    setUser(fakeUser);
-    router.push('/'); // Redirect after sign-in
+    //POST Api Call
+    ApiCall.post('auth/login',{email, password}).then((data:any) =>{
+      localStorage.setItem('user',JSON.stringify(data.user))
+      localStorage.setItem('token',JSON.stringify(data.token))
+      setUser(data)
+      router.push('/');
+    })
   };
 
   const signUp = async (email: string, password: string) => {
-    // Implement your sign-up logic here (e.g., using Firebase, Supabase, etc.)
-    // Example using localStorage (replace with your actual auth logic):
-    const fakeUser = { uid: 'fakeUserId', email }; // Replace with actual user data
-    // localStorage.setItem('user', JSON.stringify(fakeUser));
-    // setUser(fakeUser);
-    router.push('/'); // Redirect after sign-up
+    //POST API
+    ApiCall.post('auth/signup',{email, password, role:"USER"}).then((data:any) =>{
+      localStorage.setItem('user',JSON.stringify(data.user))
+      localStorage.setItem('token',JSON.stringify(data.token))
+      setUser(data)
+      router.push('/');
+    })
   };
 
   const signOut = async () => {
-    // Implement your sign-out logic here (e.g., using Firebase, Supabase, etc.)
-    // Example using localStorage (replace with your actual auth logic):
     localStorage.removeItem('user');
     setUser(null);
     router.push('/auth/signin'); // Redirect after sign-out
