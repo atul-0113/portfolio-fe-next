@@ -48,8 +48,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signIn = async (email: string, password: string) => {
     console.log(email,password,"Pass")
-    // Implement your sign-in logic here (e.g., using Firebase, Supabase, etc.)
-    // Example using localStorage (replace with your actual auth logic):
+    //Api Call
+    
     const fakeUser = { uid: '1', email , password }; // Replace with actual user data
     localStorage.setItem('user', JSON.stringify(fakeUser));
     setUser(fakeUser);
