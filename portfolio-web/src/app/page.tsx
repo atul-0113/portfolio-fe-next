@@ -1,19 +1,21 @@
+// pages/index.tsx
+"use client";
 import ECommerce from "@/components/Dashboard/E-commerce";
-import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import AuthGuard from './auth/authGuard'; // Correct path
 
-export const metadata: Metadata = {
-  title:
-    "Next.js Dashboard | Portfolio - Next.js Dashboard Template",
-  description: "This is Next.js Home for Portfolio Dashboard Template",
+const HomePage = () => {
+  return (
+    <DefaultLayout>
+      <ECommerce />
+    </DefaultLayout>
+  );
 };
 
 export default function Home() {
   return (
-    <>
-      <DefaultLayout>
-        <ECommerce />
-      </DefaultLayout>
-    </>
+    <AuthGuard>
+      <HomePage />
+    </AuthGuard>
   );
 }

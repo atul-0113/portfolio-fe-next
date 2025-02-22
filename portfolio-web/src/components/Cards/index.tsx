@@ -5,21 +5,16 @@ import { Category } from '@/types/category';
 import { useRouter } from "next/navigation";
 interface CategoryCardProps {
   category: Category;
-  classname?: any | undefined
+  classname?: any | undefined;
+  handleEditClick: (category: Category ) => void; 
 }
 
-const CategoryCard: React.FC<CategoryCardProps> = ({ category,classname }) => {
+const CategoryCard: React.FC<CategoryCardProps> = ({ category,classname,handleEditClick }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const router = useRouter();
-  console.log(classname,"class")
-  const handleEditClick = (category:any) => {
-    const queryString = new URLSearchParams(category).toString();
-    router.push(`/category/addCategory?${queryString}`);
-  };
   return (
     <div 
       className={classname ? classname :`relative p-4 border rounded-lg shadow-md h-40 flex items-end bg-cover bg-center`}
-      style={{ backgroundImage: `url(${category.icon})` }}
+      style={{ backgroundImage: `url(${category?.icon})` }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

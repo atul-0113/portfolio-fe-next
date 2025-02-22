@@ -2,15 +2,14 @@ import { RxDashboard } from "react-icons/rx";
 import { LuLayoutPanelTop } from "react-icons/lu";
 import { MdOutlineCategory } from "react-icons/md";
 import { MdManageAccounts } from "react-icons/md";
+import { ImProfile } from "react-icons/im";
 
 export const AdminRoutes = [
     {
         menuHeading: "Menu",
         routeName: "/",
         menuName: "Dashboard",
-        subMenuNames: [
-            
-        ],
+        subMenuNames: [],
         icon: <RxDashboard size={20}/>,
     },
     {
@@ -36,9 +35,9 @@ export const AdminRoutes = [
     },
     {
         menuHeading: "",
-        routeName: "/ui/buttons",
-        menuName: "Button",
+        routeName: "/portfolios",
+        menuName: "Portfolios",
         subMenuNames: [],
-        icon:<MdManageAccounts size={20} />,
+        icon:<ImProfile size={20} />,
     }
 ]
