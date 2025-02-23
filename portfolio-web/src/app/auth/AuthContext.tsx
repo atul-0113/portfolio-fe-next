@@ -52,7 +52,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     //POST Api Call
     ApiCall.post('auth/login',{email, password}).then((data:any) =>{
       localStorage.setItem('user',JSON.stringify(data.user))
-      localStorage.setItem('token',JSON.stringify(data.token))
+      localStorage.setItem('token',JSON.stringify(data.user.token))
       setUser(data)
       router.push('/');
     })
@@ -62,14 +62,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     //POST API
     ApiCall.post('auth/signup',{email, password, role:"USER"}).then((data:any) =>{
       localStorage.setItem('user',JSON.stringify(data.user))
-      localStorage.setItem('token',JSON.stringify(data.token))
-      setUser(data)
+      localStorage.setItem('token',JSON.stringify(data.user.token))
+      setUser(data.user)
       router.push('/');
     })
   };
 
   const signOut = async () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     setUser(null);
     router.push('/auth/signin'); // Redirect after sign-out
   };

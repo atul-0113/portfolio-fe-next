@@ -8,7 +8,6 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();
   const { user, isLoading } = useAuth(); // Assuming your auth context provides user and isLoading
-  console.log(user,isLoading,router,pathname,"!@")
   useEffect(() => {
     if (!isLoading) {
       // Check if the current route is the sign-in or sign-up page

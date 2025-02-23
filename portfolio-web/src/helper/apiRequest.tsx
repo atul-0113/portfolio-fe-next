@@ -2,65 +2,59 @@ interface ApiRequestConfig {
     endpoint: string;
     body?: any;
     headers?: Record<string, string>;
+    isMultiPart:boolean;
 }
 
-const BASE_URL: string = "http://localhost:3001/api/";
+export const BASE_URL: string = "http://localhost:3001/api/";
 
 // Base function for API requests
-const apiRequest = async ({ endpoint, method, body, headers }: ApiRequestConfig & { method: string }) => {
+const apiRequest = async ({ endpoint, method, body, headers ,isMultiPart}: ApiRequestConfig & { method: string }) => {
     try {
+        // Prepare headers
+        const configHeaders: HeadersInit = {
+            ...headers,
+        };
         const config: RequestInit = {
             method,
-            headers: {
-                'Content-Type': 'application/json',
-                ...headers
-            },
-            body: body ? JSON.stringify(body) : undefined,
+            headers: configHeaders,
+            body: body ?  isMultiPart ? body : JSON.stringify(body) : undefined,
         };
-
-        const response = await fetch(`${BASE_URL}${endpoint}`, config);
-        console.log(response,"resp")
-        let data;
-        try {
-            data = await response.json();
-        } catch {
-            throw new Error('Invalid JSON response');
-        }
-
+        const response = await fetch(BASE_URL+endpoint, config);
+        const data = await response.json();
         if (!response.ok) {
-            throw new Error(data?.message || 'Something went wrong');
+            throw new Error(data.message || "API Request Failed");
         }
 
         return data;
-    } catch (error: any) {
-        console.error('API Request Error:', error.message);
-        return { success: false, error: error.message };
+    } catch (error:any) {
+        console.error("API Request Error:", error.message);
+        throw error;
     }
 };
 
 // Method to perform GET requests
-export const get = async (endpoint: string, headers?: Record<string, string>) => {
-    return apiRequest({ endpoint, method: 'GET', headers });
+export const get = async (endpoint: string, headers?: Record<string, string>,isMultiPart =false) => {
+    return apiRequest({ endpoint, method: 'GET', headers ,isMultiPart});
 };
 
 // Method to perform POST requests
-export const post = async (endpoint: string, body: any, headers?: Record<string, string>) => {
-    return apiRequest({ endpoint, method: 'POST', body, headers });
+export const post = async (endpoint: string, body: any, headers?: Record<string, string>|any , isMultiPart =false) => {
+    return apiRequest({ endpoint, method: 'POST', body, headers ,isMultiPart});
 };
 
 // Method to perform PUT requests
-export const put = async (endpoint: string, body: any, headers?: Record<string, string>) => {
-    return apiRequest({ endpoint, method: 'PUT', body, headers });
+export const put = async (endpoint: string, body: any, headers?: Record<string, string>|any,isMultiPart=false) => {
+    return apiRequest({ endpoint, method: 'PUT', body, headers ,isMultiPart});
 };
 
 // Method to perform PATCH requests
-export const patch = async (endpoint: string, body: any, headers?: Record<string, string>) => {
-    return apiRequest({ endpoint, method: 'PATCH', body, headers });
+export const patch = async (endpoint: string, body: any, headers?: Record<string, string>,isMultiPart =false) => {
+    return apiRequest({ endpoint, method: 'PATCH', body, headers ,isMultiPart});
 };
 
 // Method to perform DELETE requests
-export const del = async (endpoint: string, headers?: Record<string, string>) => {
-    return apiRequest({ endpoint, method: 'DELETE', headers });
+export const del = async (endpoint: string, headers?: Record<string, string>,isMultiPart =false) => {
+    return apiRequest({ endpoint, method: 'DELETE', headers ,isMultiPart});
 };
 
 export default { get, post, put, patch, del };
