@@ -10,7 +10,7 @@ interface CategoryCardProps {
   handleEditClick: (category: Category ) => void; 
 }
 
-const CategoryCard: React.FC<CategoryCardProps> = ({ category,classname,handleEditClick }) => {
+const TemplateCard: React.FC<CategoryCardProps> = ({ category,classname,handleEditClick }) => {
 
   const [isHovered, setIsHovered] = useState(false);
   const imageUrl = category?.categoryImagePath
@@ -43,4 +43,4 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category,classname,handleEd
   );
 };
 
-export default CategoryCard;
+export default TemplateCard;

@@ -1,15 +1,14 @@
+"use client"
 import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
 import { useRouter } from "next/navigation";
-import CategoryCard from "@/components/Cards";
+import TemplateCard from "@/components/Cards/templateCard";
 import { categories } from "@/data/dummyData";
-export const metadata: Metadata = {
-  title: "Next.js Calender | Portfolio - Next.js Dashboard Template",
-  description:
-    "This is Next.js Calender page for Portfolio  Tailwind CSS Admin Dashboard Template",
-};
 
 const Templates = () => {
+  function handleEditclick(data:any){
+
+  }
   return (
     <DefaultLayout>
       <div className="mx-auto">
@@ -23,7 +22,10 @@ const Templates = () => {
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {categories.map((category, index) => (
-            <CategoryCard key={index} category={category} classname={"relative p-4 border rounded-lg shadow-md h-70 flex items-end bg-cover bg-center"} />
+            <TemplateCard key={index} 
+            handleEditClick={handleEditclick}
+            category={category} 
+            classname={"relative p-4 border rounded-lg shadow-md h-70 flex items-end bg-cover bg-center"} />
           ))}
         </div>
       </div>

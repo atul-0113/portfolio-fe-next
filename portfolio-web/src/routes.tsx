@@ -10,6 +10,7 @@ export const AdminRoutes = [
         routeName: "/",
         menuName: "Dashboard",
         subMenuNames: [],
+        requiredRoles: ["ADMIN"],
         icon: <RxDashboard size={20}/>,
     },
     {
@@ -17,6 +18,7 @@ export const AdminRoutes = [
         routeName: "/category",
         menuName: "Category",
         subMenuNames: [],
+        requiredRoles: ["ADMIN"],
         icon: <MdOutlineCategory size={20} />,
     },
     {
@@ -24,6 +26,7 @@ export const AdminRoutes = [
         routeName: "/templates",
         menuName: "Templates",
         subMenuNames: [],
+        requiredRoles: ["ADMIN"],
         icon:<LuLayoutPanelTop size={20} /> ,
     },
     {
@@ -31,6 +34,7 @@ export const AdminRoutes = [
         routeName: "/user-management",
         menuName: "User Management",
         subMenuNames: [],
+        requiredRoles: ["ADMIN"],
         icon:<MdManageAccounts size={20} />,
     },
     {
@@ -38,6 +42,15 @@ export const AdminRoutes = [
         routeName: "/portfolios",
         menuName: "Portfolios",
         subMenuNames: [],
+        requiredRoles: ["ADMIN"],
         icon:<ImProfile size={20} />,
-    }
+    },
+    {
+        menuHeading: "",
+        routeName: "/",
+        menuName: "Portfolios",
+        subMenuNames: [],
+        requiredRoles: ["USER"],
+        icon:<ImProfile size={20} />,
+    },
 ]

@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     ApiCall.post('auth/login',{email, password}).then((data:any) =>{
       localStorage.setItem('user',JSON.stringify(data.user))
       localStorage.setItem('token',JSON.stringify(data.user.token))
-      setUser(data)
+      setUser(data.user)
       router.push('/');
     })
   };

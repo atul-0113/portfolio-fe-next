@@ -1,3 +1,5 @@
+import { useAuth } from "@/app/auth/AuthContext";
+
 interface ApiRequestConfig {
     endpoint: string;
     body?: any;
@@ -9,16 +11,24 @@ export const BASE_URL: string = "http://localhost:3001/api/";
 
 // Base function for API requests
 const apiRequest = async ({ endpoint, method, body, headers ,isMultiPart}: ApiRequestConfig & { method: string }) => {
+    const user:any = localStorage.getItem('user');
     try {
         // Prepare headers
         const configHeaders: HeadersInit = {
             ...headers,
         };
+        if(!isMultiPart){
+            configHeaders['Content-Type']='application/json';
+        }
+        if(user?.token){
+            configHeaders['token']=user.token;
+        }
         const config: RequestInit = {
             method,
             headers: configHeaders,
             body: body ?  isMultiPart ? body : JSON.stringify(body) : undefined,
         };
+        console.log(config,"config")
         const response = await fetch(BASE_URL+endpoint, config);
         const data = await response.json();
         if (!response.ok) {

@@ -5,11 +5,10 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import SidebarLinkGroup from "./SidebarLinkGroup";
-import { RxDashboard } from "react-icons/rx";
 import { IoIosArrowDown } from "react-icons/io";
 import { AdminRoutes } from "@/routes";
 import { RouteTypes } from "@/types/routesTypes";
-import { LuLayoutPanelTop } from "react-icons/lu";
+import { useAuth } from "@/app/auth/AuthContext";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -27,6 +26,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const [sidebarExpanded, setSidebarExpanded] = useState(
     storedSidebarExpanded === null ? false : storedSidebarExpanded === "true",
   );
+  const { user } = useAuth();
 
   // close on click outside
   useEffect(() => {
@@ -62,6 +62,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       document.querySelector("body")?.classList.remove("sidebar-expanded");
     }
   }, [sidebarExpanded]);
+  const filteredRoutes = AdminRoutes.filter((route) => {
+    if (route.requiredRoles.length === 0) return true; // Public routes
+    return user && route.requiredRoles.includes(user.role);
+  });
+  console.log(filteredRoutes,AdminRoutes[0],user,"filteredRoutes")
   return (
     <aside
       ref={sidebar}
@@ -110,7 +115,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         <nav className="mt-5 px-4 py-4 lg:mt-9 lg:px-6">
           {/* <!-- Menu Group --> */}
           <div>
-            {AdminRoutes.map((item: RouteTypes, index: number) => {
+            {filteredRoutes.map((item: RouteTypes, index: number) => {
               return (
                 <>
                   {item.menuHeading && (
