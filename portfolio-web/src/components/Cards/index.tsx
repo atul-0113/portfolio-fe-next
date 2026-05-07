@@ -2,7 +2,7 @@
 import React,{ useState } from 'react';
 import { FaEdit } from "react-icons/fa";
 import { Category } from '@/types/category';
-import { BASE_URL } from '@/helper/apiRequest';
+import { resolveAssetUrl } from '@/helper/apiRequest';
 
 interface CategoryCardProps {
   category: Category;
@@ -14,7 +14,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category,classname,handleEd
 
   const [isHovered, setIsHovered] = useState(false);
   const imageUrl = category?.categoryImagePath
-  ? `${BASE_URL}${category.categoryImagePath}`
+  ? resolveAssetUrl(category.categoryImagePath)
   : '/images/category/finearts.jpeg';
   return (
     <div 
@@ -24,7 +24,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category,classname,handleEd
     >
         <img
         src={imageUrl}
-        alt="Background"
+        alt={category.categoryName}
         className="absolute inset-0 w-full h-full object-cover z-0"
         style={{ objectFit: 'cover' }}
         crossOrigin="anonymous" // CORS for images

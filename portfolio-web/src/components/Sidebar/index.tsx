@@ -170,7 +170,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                                       {item?.subMenuNames.map(
                                         (subMenu: any, index: number) => {
                                           return (
-                                            <li>
+                                            <li key={subMenu?.routeName || index}>
                                               <Link
                                                 href={subMenu?.routeName}
                                                 className={`group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${

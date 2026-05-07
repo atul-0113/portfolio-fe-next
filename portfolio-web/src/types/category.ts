@@ -1,8 +1,9 @@
 // types.ts
 
 export interface Category {
+    id: string;
     categoryName: string;
-    categoryImagePath: string | any; // You can use the icon class or URL here
+    categoryImagePath: string | null;
     isActive:boolean;
-    _id:string
+    _id?:string
   }

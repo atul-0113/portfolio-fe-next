@@ -2,34 +2,30 @@
 "use client";
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAuth } from './AuthContext'; // Replace with your authentication context
+import { useAuth } from './AuthContext';
 
 const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isLoading } = useAuth(); // Assuming your auth context provides user and isLoading
+  const { user, isLoading } = useAuth();
   useEffect(() => {
     if (!isLoading) {
-      // Check if the current route is the sign-in or sign-up page
-      const isAuthPage = pathname === '/signin' || pathname === '/signup';
+      const isAuthPage = pathname === '/auth/signin' || pathname === '/auth/signup';
         
       if (!user && !isAuthPage) {
         // Redirect to signin if not authenticated and not on signin/signup
-        router.push('/auth/signin');
+        router.replace('/auth/signin');
       } else if (user && isAuthPage) {
-        // Redirect to dashboard if authenticated and on signin/signup
-        router.push('/'); // Or your desired default route
+        router.replace('/');
       }
     }
   }, [user, isLoading, router, pathname]);
  
   // Render children only when authentication check is complete
   if (isLoading) {
-    // Optionally render a loading indicator while authentication is in progress
     return <div>Loading...</div>;
   }
 
-  // If user is null and path is signin/signup or user is not null and path is not signin/signup, render children
   return <>{children}</>;
 };
 

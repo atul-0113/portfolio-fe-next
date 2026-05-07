@@ -1,6 +1,4 @@
-import { Category } from "@/types/category";
-
-export const categories: Category[] = [
+export const categories = [
   { name: "Graphic Design", icon: "graphic-design-icon.svg" },
   { name: "Photography and Videography", icon: "/images/category/photo.jpeg" },
   { name: "Blogging", icon: "/images/category/bloging.jpg" },

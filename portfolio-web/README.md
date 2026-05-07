@@ -1,106 +1,117 @@
-# Portfolio Next.js - Free Next.js Tailwind Admin Dashboard Template
+# PortfolioPro Frontend
 
-Portfolio is a free and open-source admin dashboard template built on **Next.js and Tailwind CSS** providing developers with everything they need to create a feature-rich and data-driven: back-end, dashboard, or admin panel solution for any sort of web project.
+PortfolioPro Frontend is a modern multi-tenant SaaS platform built with Next.js App Router and Tailwind CSS that enables users from multiple industries to create professional AI-powered portfolios and ATS-friendly resumes.
 
-[![tailwind nextjs admin template](https://github.com/Portfolio/free-nextjs-admin-dashboard/blob/main/Portfolio-nextjs.jpg)](https://nextjs-demo.Portfolio.com/)
+---
 
-With Portfolio Next.js, you get access to all the necessary dashboard UI components, elements, and pages required to build a high-quality and complete dashboard or admin panel. Whether you're building a dashboard or admin panel for a complex web application or a simple website. 
+# Tech Stack
 
-Portfolio utilizes the powerful features of **Next.js 13** and common features of Next.js such as server-side rendering (SSR), static site generation (SSG), and seamless API route integration. Combined with the advancements of **React 18** and the robustness of **TypeScript**, Portfolio is the perfect solution to help get your project up and running quickly.
+- Next.js 15+
+- React 19+
+- Tailwind CSS
+- TypeScript
+- Zustand
+- React Hook Form
+- Zod
+- shadcn/ui
+- Axios
+- Framer Motion
 
-### [✨ Visit Website](https://Portfolio.com/)
-### [🚀 PRO Demo](https://nextjs-demo.Portfolio.com/)
-### [🚀 FREE Demo](https://nextjs-free-demo.Portfolio.com/)
+---
 
-### Portfolio Next.js PRO vs Portfolio Next.js FREE Comparison 📊
+# Features
 
-#### [Portfolio Next.js PRO](https://nextjs-demo.Portfolio.com/)
-- 4 Unique Dashboards: Analytics, Ecommerce, Marketing, and CRM (More will be added)
-- 120+ Dashboard UI Components
-- 200+ Total UI Elements
-- 45+ HTML Files
-- All Essential Elements and Files
-- Full Figma Design Source - As Shown on Demo
-___
+## Authentication
+- Login/Register
+- JWT/Auth session handling
+- Protected routes
+- Role-based access control
 
-#### [Portfolio Next.js FREE](https://free-nextjs-demo.Portfolio.com/)
-- 1 Unique Dashboard
-- 30+ Dashboard UI Components
-- 50+ Total UI Elements 
-- 10+ HTML Files
-- TypeScript Support
-- Basic UI Kit Elements and Files
-- Figma Design Source - Free Sample
-___
+## Portfolio Builder
+- Dynamic section engine
+- Drag & Drop sections
+- Multi-domain support
+- Live preview
+- Publish portfolio
 
-### [⬇️ Download Now](https://Portfolio.com/download)
+## Resume Builder
+- ATS optimized resume creation
+- PDF export
+- Resume versioning
 
-### [⚡ Get PRO Version](https://Portfolio.com/pricing)
+## AI Features
+- AI Bio Generator
+- AI Project Description Generator
+- ATS Resume Analyzer
+- Theme Suggestions
 
-### [📄 Documentation/Installation](https://Portfolio.com/docs)
+## SaaS Features
+- Subscription management
+- Stripe/Razorpay integration
+- User dashboard
+- Public portfolio hosting
 
-### [🖌️ Portfolio Figma Free Sample](https://www.figma.com/community/file/1214477970819985778)
+---
 
-### [👉 Portfolio HTML Version](https://github.com/Portfolio/Portfolio-free-tailwind-dashboard-template)
+# Folder Structure
 
-
-## Installation
-
-Here are the steps you need to follow to install the dependencies.
-
-1. Download and extract the template from Next.js Templates.
-
-2. After that **cd** into the template directory then run this command to install all the dependencies
-
+```bash
+src/
+├── app/
+├── components/
+├── features/
+├── hooks/
+├── helper/
+├── lib/
+├── services/
+├── store/
+├── styles/
+├── types/
+└── utils/
 ```
+
+---
+
+# Local Setup
+
+1. Install dependencies:
+
+```bash
 npm install
 ```
-or
 
-```
-yarn install
+2. Create your local environment file:
+
+```bash
+cp .env.example .env.local
 ```
 
-3. Now run this command to start the developement server
+3. Point the frontend at the backend API from `api.md`:
 
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5001
 ```
+
+4. Start the backend on port `5001`, then run the frontend:
+
+```bash
 npm run dev
 ```
 
-or 
+The app will be available at `http://localhost:3000`.
 
-```
-yarn dev
-```
+---
 
+# API Integration
 
-## Free Admin Dashboard Template for Next.js Built-with Tailwind CSS, React 18 and TypeScript
-Portfolio Next.js is a free dashboard template, which uses Tailwind CSS, is a great starting point for dashboard UI. This template uses the Next.js JavaScript framework and the easy-to-use Tailwind CSS framework. The Tailwind CSS and Next.js Dashboard Template comes with ready-made components like navigation menus, charts, tables, and forms. These components can be easily adjusted and added to any Next.js web application.
+The API client lives in `src/helper/apiRequest.tsx` and reads
+`NEXT_PUBLIC_API_BASE_URL`. It automatically prefixes API calls with `/api`,
+adds the saved JWT as both `Authorization: Bearer <token>` and `token:
+<token>`, and supports JSON plus `multipart/form-data` uploads.
 
-Portfolio for Next.js provides all essential Next.js + Tailwind CSS UI components that can be copied and pasted directly into your dashboard projects. The range of components includes charts, graphs, navbars, tabs, buttons, cards, tables, profiles, forms, modals, app pages, calendars, web app example templates, and more, all coded for Next.js React and styled using Tailwind CSS.
+Endpoint-specific wrappers live in `src/services/`:
 
-If you're on the hunt for a top-quality Next.js-Tailwind Dashboard, Admin Panel Template, or UI Kit, Portfolio is the perfect choice for you!
-
-### 📄 License
-Portfolio Next.js Free is 100% free and open-source; feel free to use it with your personal and commercial projects.
-
-### 💜 Support
-If you like the template, please star this repository to inspire the team to create more stuff like this and reach more users like you!
-
-
-## Update Logs
-
-### Version 1.2.0 - [Feb 05, 2024]
-
-#### Enhancements
-
-- **Enhancement 01:** Update Next.js into version 14
-- **Enhancement 02:** Integrate flatpickr in [Date Picker/Form Elements]
-- **Enhancement 03:** Change color after select an option [Select Element/Form Elements].
-- **Enhancement 04:** Make it functional [Multiselect Dropdown/Form Elements].
-- **Enhancement 05:** Make best value editable [Pricing Table One/Pricing Table].
-- **Enhancement 06:** Add Default Layout Component and make App/Layout more clean and use it in every pages.
-
-### Version 0.1.0 - Initial Release - [Aug 3, 2023]
-
-- Initial release of Portfolio Next.
+- `authService.ts`: login, register, logout
+- `userService.ts`: user list and profile endpoints
+- `categoryService.ts`: category list, create, and update endpoints
+- `templateService.ts`: template list endpoint

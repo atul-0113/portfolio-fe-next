@@ -2,23 +2,17 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import * as ApiCall from '@/helper/apiRequest';
+import * as authService from '@/services/authService';
+import { ApiUser } from '@/types/api';
 
-// Define the type for the user object
-interface User {
-  id: string;
-  email: string | null;
-  role:string;
-  token:string;
-}
+type User = ApiUser & { token: string };
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<User>;
+  signUp: (name: string, email: string, password: string) => Promise<User>;
   signOut: () => Promise<void>;
-  // Add other auth-related functions as needed
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,13 +27,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for authentication state on mount (e.g., from localStorage, cookies, or an API)
     const checkAuth = async () => {
-      // Implement your authentication check here (e.g., using Firebase, Supabase, etc.)
-      // Example using localStorage (replace with your actual auth logic):
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
-        setUser(JSON.parse(storedUser));
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch {
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+        }
       }
 
       setIsLoading(false);
@@ -49,26 +45,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    //POST Api Call
-    ApiCall.post('auth/login',{email, password}).then((data:any) =>{
-      localStorage.setItem('user',JSON.stringify(data.user))
-      localStorage.setItem('token',JSON.stringify(data.user.token))
-      setUser(data.user)
-      router.push('/');
-    })
+    const data = await authService.login(email, password);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    localStorage.setItem('token', data.user.token);
+    setUser(data.user);
+    router.push('/');
+    return data.user;
   };
 
-  const signUp = async (email: string, password: string) => {
-    //POST API
-    ApiCall.post('auth/signup',{email, password, role:"USER"}).then((data:any) =>{
-      localStorage.setItem('user',JSON.stringify(data.user))
-      localStorage.setItem('token',JSON.stringify(data.user.token))
-      setUser(data.user)
-      router.push('/');
-    })
+  const signUp = async (name: string, email: string, password: string) => {
+    const data = await authService.register(name, email, password);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    localStorage.setItem('token', data.user.token);
+    setUser(data.user);
+    router.push('/');
+    return data.user;
   };
 
   const signOut = async () => {
+    try {
+      await authService.logout();
+    } catch {
+      // Local sign-out should still complete if the backend is unavailable.
+    }
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     setUser(null);

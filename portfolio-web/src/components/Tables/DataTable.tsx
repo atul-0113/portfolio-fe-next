@@ -75,6 +75,8 @@ const DataTable = <T extends Record<string, any>>({ headers, data, filterOptions
               <input
                 type="text"
                 placeholder="Type to search..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
                 className="w-full bg-transparent pl-9 pr-4 font-medium focus:outline-none xl:w-125"
               />
             </div>
