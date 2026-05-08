@@ -3,11 +3,14 @@ import { PortfolioData, PortfolioTemplateNode, PortfolioTemplateSchema } from ".
 export const makePortfolioNodeId = (prefix = "node") =>
   `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
+const cloneJsonValue = <T>(value: T): T =>
+  value === undefined ? value : JSON.parse(JSON.stringify(value)) as T;
+
 export const clonePortfolioNode = (node: PortfolioTemplateNode): PortfolioTemplateNode => ({
   ...node,
   id: makePortfolioNodeId(node.type),
-  props: node.props ? { ...node.props } : undefined,
-  style: node.style ? { ...node.style } : undefined,
+  props: node.props ? cloneJsonValue(node.props) : undefined,
+  style: node.style ? cloneJsonValue(node.style) : undefined,
   children: node.children?.map(clonePortfolioNode),
 });
 

@@ -10,7 +10,12 @@ export type PortfolioNodeType =
   | "projectGrid"
   | "skillCloud"
   | "timeline"
-  | "contact";
+  | "contact"
+  | "media"
+  | "mediaGallery"
+  | "cta"
+  | "tabs"
+  | "customList";
 
 export type PortfolioLayout = "stack" | "split" | "grid" | "centered" | "inline";
 export type PortfolioSpacing = "none" | "sm" | "md" | "lg" | "xl";
@@ -28,6 +33,11 @@ export interface PortfolioTheme {
   mutedTextColor: string;
   accentColor: string;
   borderColor: string;
+  backgroundImage?: string;
+  backgroundOverlay?: string;
+  backgroundBlur?: string;
+  backgroundSize?: "cover" | "contain" | "auto";
+  backgroundPosition?: "center" | "top" | "bottom" | "left" | "right";
 }
 
 export interface PortfolioNodeStyle {
@@ -39,8 +49,23 @@ export interface PortfolioNodeStyle {
   paddingX?: PortfolioSpacing;
   maxWidth?: "sm" | "md" | "lg" | "xl" | "full";
   backgroundColor?: string;
+  backgroundImage?: string;
+  backgroundOverlay?: string;
+  backgroundBlur?: string;
+  backgroundSize?: "cover" | "contain" | "auto";
+  backgroundPosition?: "center" | "top" | "bottom" | "left" | "right";
   textColor?: string;
   accentColor?: string;
+  borderColor?: string;
+  borderWidth?: string;
+  borderStyle?: "solid" | "dashed" | "dotted" | "none";
+  backdropBlur?: string;
+  minHeight?: string;
+  imageHeight?: string;
+  imageWidth?: string;
+  imagePlacement?: "side" | "cover" | "top" | "none";
+  aspectRatio?: "auto" | "video" | "square" | "portrait" | "wide";
+  mediaFit?: "cover" | "contain";
   radius?: PortfolioRadius;
   shadow?: PortfolioShadow;
 }
@@ -81,6 +106,26 @@ export interface PortfolioExperience {
   summary: string;
 }
 
+export type PortfolioMediaType = "image" | "video";
+
+export interface PortfolioMediaItem {
+  type: PortfolioMediaType;
+  src: string;
+  title: string;
+  description?: string;
+  alt?: string;
+  poster?: string;
+  url?: string;
+}
+
+export interface PortfolioCustomCollectionItem {
+  title: string;
+  description: string;
+  meta?: string;
+  url?: string;
+  [key: string]: string | undefined;
+}
+
 export interface PortfolioData {
   profile: {
     name: string;
@@ -101,6 +146,9 @@ export interface PortfolioData {
   skills: string[];
   projects: PortfolioProject[];
   experiences: PortfolioExperience[];
+  media: PortfolioMediaItem[];
+  custom: Record<string, string>;
+  collections: Record<string, PortfolioCustomCollectionItem[]>;
 }
 
 export interface PortfolioPaletteItem {
