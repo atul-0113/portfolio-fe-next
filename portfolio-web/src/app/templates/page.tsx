@@ -6,6 +6,7 @@ import { useTemplateLibrary } from "@/hooks/useTemplates";
 import { badgeColorClasses, colorClasses } from "@/styles/theme";
 import { componentStyles, layoutStyles, typographyStyles } from "@/styles/ui";
 import Image from "next/image";
+import Link from "next/link";
 import { FiEdit3, FiPlus, FiPlusCircle } from "react-icons/fi";
 
 const Templates = () => {
@@ -23,13 +24,13 @@ const Templates = () => {
               Choose a starting point or build a custom layout for your next professional showcase.
             </p>
           </div>
-          <button
-            type="button"
+          <Link
+            href="/templates/builder"
             className={`${componentStyles.buttonPrimary} shrink-0`}
           >
             <FiPlus size={18} />
             Create Template
-          </button>
+          </Link>
         </div>
 
         <div className="mb-12 flex flex-wrap gap-3">
@@ -100,8 +101,8 @@ const Templates = () => {
             </article>
           ))}
 
-          <button
-            type="button"
+          <Link
+            href="/templates/builder"
             className={`flex min-h-[380px] flex-col items-center justify-center rounded-lg border-2 border-dashed ${colorClasses.border} bg-white px-10 text-center transition ${colorClasses.hoverBorder}`}
           >
             <span className={`mb-7 flex h-20 w-20 items-center justify-center rounded-xl ${colorClasses.surfaceSubtle} ${colorClasses.primaryAccentText}`}>
@@ -111,7 +112,7 @@ const Templates = () => {
             <span className={`mt-3 max-w-[245px] text-base leading-6 ${colorClasses.textMuted}`}>
               Start with a blank canvas and build your own custom theme.
             </span>
-          </button>
+          </Link>
         </div>
 
         <Pagination
