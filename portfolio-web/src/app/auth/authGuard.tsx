@@ -16,7 +16,7 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
         // Redirect to signin if not authenticated and not on signin/signup
         router.replace('/auth/signin');
       } else if (user && isAuthPage) {
-        router.replace('/');
+        router.replace('/dashboard');
       }
     }
   }, [user, isLoading, router, pathname]);

@@ -1,56 +1,55 @@
+import { FaFileAlt, FaLayerGroup, FaUserTie } from "react-icons/fa";
 import { RxDashboard } from "react-icons/rx";
-import { LuLayoutPanelTop } from "react-icons/lu";
-import { MdOutlineCategory } from "react-icons/md";
-import { MdManageAccounts } from "react-icons/md";
-import { ImProfile } from "react-icons/im";
+import { MdManageAccounts, MdOutlineCategory } from "react-icons/md";
+import { RouteTypes } from "@/types/routesTypes";
 
-export const AdminRoutes = [
-    {
-        menuHeading: "Menu",
-        routeName: "/",
-        menuName: "Dashboard",
-        subMenuNames: [],
-        requiredRoles: ["ADMIN"],
-        icon: <RxDashboard size={20}/>,
-    },
-    {
-        menuHeading: "",
-        routeName: "/category",
-        menuName: "Category",
-        subMenuNames: [],
-        requiredRoles: ["ADMIN"],
-        icon: <MdOutlineCategory size={20} />,
-    },
-    {
-        menuHeading: "",
-        routeName: "/templates",
-        menuName: "Templates",
-        subMenuNames: [],
-        requiredRoles: ["ADMIN"],
-        icon:<LuLayoutPanelTop size={20} /> ,
-    },
-    {
-        menuHeading: "Configs",
-        routeName: "/user-management",
-        menuName: "User Management",
-        subMenuNames: [],
-        requiredRoles: ["ADMIN"],
-        icon:<MdManageAccounts size={20} />,
-    },
-    {
-        menuHeading: "",
-        routeName: "/portfolios",
-        menuName: "Portfolios",
-        subMenuNames: [],
-        requiredRoles: ["ADMIN"],
-        icon:<ImProfile size={20} />,
-    },
-    {
-        menuHeading: "",
-        routeName: "/",
-        menuName: "Portfolios",
-        subMenuNames: [],
-        requiredRoles: ["USER"],
-        icon:<ImProfile size={20} />,
-    },
-]
+export const AdminRoutes: RouteTypes[] = [
+  {
+    menuHeading: "Menu",
+    routeName: "/dashboard",
+    menuName: "Dashboard",
+    subMenuNames: [],
+    requiredRoles: ["USER", "ADMIN"],
+    icon: <RxDashboard size={20} />,
+  },
+  {
+    menuHeading: "Workspace",
+    routeName: "/resume-builder",
+    menuName: "Resume Builder",
+    subMenuNames: [],
+    requiredRoles: ["USER", "ADMIN"],
+    icon: <FaFileAlt size={20} />,
+  },
+  {
+    menuHeading: "",
+    routeName: "/templates",
+    menuName: "Template",
+    subMenuNames: [],
+    requiredRoles: ["USER", "ADMIN"],
+    icon: <FaLayerGroup size={20} />,
+  },
+  {
+    menuHeading: "",
+    routeName: "/portfolios",
+    menuName: "Portfolio",
+    subMenuNames: [],
+    requiredRoles: ["USER", "ADMIN"],
+    icon: <FaUserTie size={20} />,
+  },
+  {
+    menuHeading: "Admin",
+    routeName: "/category",
+    menuName: "Category",
+    subMenuNames: [],
+    requiredRoles: ["ADMIN"],
+    icon: <MdOutlineCategory size={20} />,
+  },
+  {
+    menuHeading: "",
+    routeName: "/user-management",
+    menuName: "User Management",
+    subMenuNames: [],
+    requiredRoles: ["ADMIN"],
+    icon: <MdManageAccounts size={20} />,
+  },
+];

@@ -49,7 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(data.user));
     localStorage.setItem('token', data.user.token);
     setUser(data.user);
-    router.push('/');
+    router.push('/dashboard');
     return data.user;
   };
 
@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(data.user));
     localStorage.setItem('token', data.user.token);
     setUser(data.user);
-    router.push('/');
+    router.push('/dashboard');
     return data.user;
   };
 
@@ -71,7 +71,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     setUser(null);
-    router.push('/auth/signin'); // Redirect after sign-out
+
+    if (typeof window !== 'undefined') {
+      window.location.replace('/auth/signin');
+      return;
+    }
+
+    router.replace('/auth/signin');
   };
 
   const value: AuthContextType = {

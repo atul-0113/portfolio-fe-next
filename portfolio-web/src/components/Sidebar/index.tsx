@@ -63,10 +63,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     }
   }, [sidebarExpanded]);
   const filteredRoutes = AdminRoutes.filter((route) => {
-    if (route.requiredRoles.length === 0) return true; // Public routes
+    if (route.requiredRoles.length === 0) return true;
     return user && route.requiredRoles.includes(user.role);
   });
-  console.log(filteredRoutes,AdminRoutes[0],user,"filteredRoutes")
+
   return (
     <aside
       ref={sidebar}
@@ -117,10 +117,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
           <div>
             {filteredRoutes.map((item: RouteTypes, index: number) => {
               return (
-                <>
+                <React.Fragment key={item.routeName || index}>
                   {item.menuHeading && (
                     <h3
-                      key={index}
                       className="mb-4 ml-4 text-sm font-semibold text-bodydark2"
                     >
                       {item.menuHeading}
@@ -211,7 +210,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       )}
                     </ul>
                   }
-                </>
+                </React.Fragment>
               );
             })}
           </div>

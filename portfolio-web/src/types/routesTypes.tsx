@@ -1,9 +1,10 @@
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 
 export type RouteTypes ={
-    menuHeading: string
-    routeName: string,
-    menuName: string,
-    subMenuNames: any[],
-    icon?: any,
-}
+    menuHeading: string;
+    routeName: string;
+    menuName: string;
+    subMenuNames: any[];
+    requiredRoles: string[];
+    icon?: ReactNode;
+};
