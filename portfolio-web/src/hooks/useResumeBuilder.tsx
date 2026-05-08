@@ -17,6 +17,7 @@ import {
   ResumeSection,
   ResumeThemeSettings,
 } from "@/types/api";
+import { defaultSectionFontSizes } from "@/utils/resumeTypography";
 
 const makeId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
@@ -34,7 +35,7 @@ const initialSections: ResumeSection[] = [
     title: "Professional Summary",
     position: 1,
     isVisible: true,
-    config: { layout: "default", showDivider: true },
+    config: { layout: "default", showDivider: true, ...defaultSectionFontSizes },
     items: [
       {
         id: makeId("item"),
@@ -53,7 +54,7 @@ const initialSections: ResumeSection[] = [
     title: "Work Experience",
     position: 2,
     isVisible: true,
-    config: { layout: "timeline", showIcons: true },
+    config: { layout: "timeline", showIcons: true, ...defaultSectionFontSizes },
     items: [
       {
         id: makeId("item"),
@@ -83,7 +84,7 @@ const initialSections: ResumeSection[] = [
     title: "Education",
     position: 3,
     isVisible: true,
-    config: { layout: "list" },
+    config: { layout: "list", ...defaultSectionFontSizes },
     items: [
       {
         id: makeId("item"),
@@ -107,7 +108,7 @@ const initialSections: ResumeSection[] = [
     title: "Skills",
     position: 4,
     isVisible: true,
-    config: { layout: "tags" },
+    config: { layout: "tags", ...defaultSectionFontSizes },
     items: [
       {
         id: makeId("item"),
@@ -129,7 +130,7 @@ const initialSections: ResumeSection[] = [
     title: "Projects",
     position: 5,
     isVisible: true,
-    config: { layout: "cards" },
+    config: { layout: "cards", ...defaultSectionFontSizes },
     items: [
       {
         id: makeId("item"),
@@ -157,7 +158,7 @@ const initialSections: ResumeSection[] = [
     title: "Certifications",
     position: 6,
     isVisible: true,
-    config: { layout: "list" },
+    config: { layout: "list", ...defaultSectionFontSizes },
     items: [
       {
         id: makeId("item"),
@@ -180,7 +181,7 @@ const initialSections: ResumeSection[] = [
     title: "Languages",
     position: 7,
     isVisible: true,
-    config: { layout: "chips" },
+    config: { layout: "chips", ...defaultSectionFontSizes },
     items: [
       {
         id: makeId("item"),
@@ -196,7 +197,7 @@ const initialSections: ResumeSection[] = [
     title: "Volunteer Experience",
     position: 8,
     isVisible: true,
-    config: { layout: "list" },
+    config: { layout: "list", ...defaultSectionFontSizes },
     items: [
       {
         id: makeId("item"),
@@ -456,6 +457,31 @@ export const useResumeBuilder = () => {
     });
   }, []);
 
+  const updateSectionConfig = useCallback((sectionId: string, key: string, value: unknown) => {
+    setResume((current) => {
+      const nextSections = current.metadata.sections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              config: {
+                ...section.config,
+                [key]: value,
+              },
+            }
+          : section,
+      );
+
+      return {
+        ...current,
+        metadata: {
+          ...current.metadata,
+          sections: nextSections,
+        },
+        sections: nextSections,
+      };
+    });
+  }, []);
+
   const fetchResumes = useCallback(async () => {
     if (!user?.token) {
       return;
@@ -568,7 +594,7 @@ export const useResumeBuilder = () => {
     setIsSaving(true);
     setError("");
     setSuccessMessage("");
-    console.log(resume,"resumeresumeresume")
+
     try {
       const response = resume.id
         ? await updateResume(resume.id, resume)
@@ -631,6 +657,7 @@ export const useResumeBuilder = () => {
     updateLocation,
     updateMetadata,
     updatePersonalInformation,
+    updateSectionConfig,
     updateSectionItemContent,
     updateSocialLink,
     updateTags,

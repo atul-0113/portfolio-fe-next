@@ -9,6 +9,12 @@ import { componentStyles, cx, layoutStyles, typographyStyles } from "@/styles/ui
 import { Resume, ResumeSection } from "@/types/api";
 import { downloadResumePdf, getResumeContactParts } from "@/utils/resumeDownload";
 import {
+  getSectionFontSize,
+  getSectionFontSizeStyle,
+  sectionFontSizeOptions,
+  sectionTypographyControls,
+} from "@/utils/resumeTypography";
+import {
   FiCheckCircle,
   FiChevronLeft,
   FiChevronRight,
@@ -43,6 +49,8 @@ type BuilderStep =
       title: string;
       section: ResumeSection;
     };
+
+type EditorSideTab = "tips" | "examples" | "config";
 
 const getString = (value: unknown) => (typeof value === "string" ? value : "");
 
@@ -161,8 +169,16 @@ const ResumeSectionView = ({
   if (section.type === "summary") {
     return (
       <EditableBlock label={section.title} onEdit={onEdit}>
-        <h2 className="mb-4 text-[18px] font-black leading-tight text-black">Summary</h2>
-        <p className="font-serif text-[18px] leading-8 text-[#6f6f6f]">
+        <h2
+          className="mb-4 font-black leading-tight text-black"
+          style={getSectionFontSizeStyle(section, "headingFontSize")}
+        >
+          Summary
+        </h2>
+        <p
+          className="font-serif leading-8 text-[#6f6f6f]"
+          style={getSectionFontSizeStyle(section, "paragraphFontSize")}
+        >
           {getString(content.text) ||
             "Enter a brief description of your professional background."}
         </p>
@@ -174,22 +190,39 @@ const ResumeSectionView = ({
     return (
       <>
         <EditableBlock label={section.title} onEdit={onEdit}>
-          <h2 className="mb-7 text-[18px] font-black leading-tight text-black">Education</h2>
+          <h2
+            className="mb-7 font-black leading-tight text-black"
+            style={getSectionFontSizeStyle(section, "headingFontSize")}
+          >
+            Education
+          </h2>
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
             <div className="min-w-0">
-              <h3 className="break-words text-[22px] font-black text-[#707070]">
+              <h3
+                className="break-words font-black text-[#707070]"
+                style={getSectionFontSizeStyle(section, "itemTitleFontSize")}
+              >
                 {getString(content.institutionName) || "Graduated school"}
               </h3>
-              <p className="mt-1 text-[16px] text-[#707070]">
+              <p
+                className="mt-1 text-[#707070]"
+                style={getSectionFontSizeStyle(section, "metaFontSize")}
+              >
                 {getString(content.fieldOfStudy) || "Field of study"} ·{" "}
                 {getString(content.degree) || "Location"}
               </p>
             </div>
-            <p className="text-[16px] text-[#707070] sm:text-right">
+            <p
+              className="text-[#707070] sm:text-right"
+              style={getSectionFontSizeStyle(section, "metaFontSize")}
+            >
               {getString(content.endDate) || "Graduation Date"}
             </p>
           </div>
-          <p className="mt-4 font-serif text-[18px] leading-8 text-[#6f6f6f]">
+          <p
+            className="mt-4 font-serif leading-8 text-[#6f6f6f]"
+            style={getSectionFontSizeStyle(section, "paragraphFontSize")}
+          >
             {getString(content.description) ||
               "Enter any colleges, universities, or training programs that you have attended."}
           </p>
@@ -205,8 +238,16 @@ const ResumeSectionView = ({
     return (
       <>
         <EditableBlock label={section.title} onEdit={onEdit}>
-          <h2 className="mb-5 text-[18px] font-black leading-tight text-black">Skills</h2>
-          <p className="font-serif text-[18px] leading-8 text-[#6f6f6f]">
+          <h2
+            className="mb-5 font-black leading-tight text-black"
+            style={getSectionFontSizeStyle(section, "headingFontSize")}
+          >
+            Skills
+          </h2>
+          <p
+            className="font-serif leading-8 text-[#6f6f6f]"
+            style={getSectionFontSizeStyle(section, "paragraphFontSize")}
+          >
             {skills.length > 0 ? skills.join(", ") : "List 3-4 special, work-related, talents skills."}
           </p>
         </EditableBlock>
@@ -218,32 +259,52 @@ const ResumeSectionView = ({
   if (section.type === "experience") {
     return (
       <EditableBlock label={section.title} onEdit={onEdit}>
-        <h2 className="mb-7 text-[18px] font-black leading-tight text-black">Experience</h2>
+        <h2
+          className="mb-7 font-black leading-tight text-black"
+          style={getSectionFontSizeStyle(section, "headingFontSize")}
+        >
+          Experience
+        </h2>
         <div className="space-y-7">
           <div>
             <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
               <div className="min-w-0">
-                <h3 className="break-words text-[22px] font-black text-[#707070]">
+                <h3
+                  className="break-words font-black text-[#707070]"
+                  style={getSectionFontSizeStyle(section, "itemTitleFontSize")}
+                >
                   {getString(content.companyName) || "Company A"}
                 </h3>
-                <p className="mt-1 text-[16px] text-[#707070]">
+                <p
+                  className="mt-1 text-[#707070]"
+                  style={getSectionFontSizeStyle(section, "metaFontSize")}
+                >
                   {getString(content.jobTitle) || "Sales Representative"} ·{" "}
                   {typeof content.location === "object" && content.location
                     ? getString((content.location as { city?: string }).city) || "Location"
                   : "Location"}
                 </p>
               </div>
-              <p className="text-[16px] text-[#707070] sm:text-right">
+              <p
+                className="text-[#707070] sm:text-right"
+                style={getSectionFontSizeStyle(section, "metaFontSize")}
+              >
                 {[getString(content.startDate), getString(content.endDate)].filter(Boolean).join(" - ") ||
                   "Start and end date"}
               </p>
             </div>
-            <p className="mt-4 font-serif text-[18px] leading-8 text-[#6f6f6f]">
+            <p
+              className="mt-4 font-serif leading-8 text-[#6f6f6f]"
+              style={getSectionFontSizeStyle(section, "paragraphFontSize")}
+            >
               {getString(content.description) || "Enter key responsibilities and accomplishments."}
             </p>
           </div>
           {getStringList(content.achievements).length > 0 && (
-            <ul className="list-disc space-y-2 pl-6 font-serif text-[17px] leading-7 text-[#6f6f6f]">
+            <ul
+              className="list-disc space-y-2 pl-6 font-serif leading-7 text-[#6f6f6f]"
+              style={getSectionFontSizeStyle(section, "paragraphFontSize")}
+            >
               {getStringList(content.achievements).map((achievement) => (
                 <li key={achievement}>{achievement}</li>
               ))}
@@ -258,14 +319,28 @@ const ResumeSectionView = ({
     return (
       <>
         <EditableBlock label={section.title} onEdit={onEdit}>
-          <h2 className="mb-5 text-[18px] font-black leading-tight text-black">Projects</h2>
-          <h3 className="text-[22px] font-black text-[#707070]">
+          <h2
+            className="mb-5 font-black leading-tight text-black"
+            style={getSectionFontSizeStyle(section, "headingFontSize")}
+          >
+            Projects
+          </h2>
+          <h3
+            className="font-black text-[#707070]"
+            style={getSectionFontSizeStyle(section, "itemTitleFontSize")}
+          >
             {getString(content.projectName) || "Project name"}
           </h3>
-          <p className="mt-2 font-serif text-[18px] leading-8 text-[#6f6f6f]">
+          <p
+            className="mt-2 font-serif leading-8 text-[#6f6f6f]"
+            style={getSectionFontSizeStyle(section, "paragraphFontSize")}
+          >
             {getString(content.description) || "Describe your project impact."}
           </p>
-          <p className="mt-3 text-[15px] text-[#707070]">
+          <p
+            className="mt-3 text-[#707070]"
+            style={getSectionFontSizeStyle(section, "metaFontSize")}
+          >
             {getStringList(content.technologies).join(" · ")}
           </p>
         </EditableBlock>
@@ -277,14 +352,27 @@ const ResumeSectionView = ({
   return (
     <>
       <EditableBlock label={section.title} onEdit={onEdit}>
-        <h2 className="mb-5 text-[18px] font-black leading-tight text-black">{section.title}</h2>
-        <div className="font-serif text-[18px] leading-8 text-[#6f6f6f]">
+        <h2
+          className="mb-5 font-black leading-tight text-black"
+          style={getSectionFontSizeStyle(section, "headingFontSize")}
+        >
+          {section.title}
+        </h2>
+        <div
+          className="font-serif leading-8 text-[#6f6f6f]"
+          style={getSectionFontSizeStyle(section, "paragraphFontSize")}
+        >
           {Object.entries(content)
             .filter(([, value]) => typeof value === "string" && value)
             .slice(0, 3)
             .map(([key, value]) => (
               <p key={key}>
-                <span className="font-sans text-[16px] font-black text-[#707070]">{formatKey(key)}:</span>{" "}
+                <span
+                  className="font-sans font-black text-[#707070]"
+                  style={getSectionFontSizeStyle(section, "metaFontSize")}
+                >
+                  {formatKey(key)}:
+                </span>{" "}
                 {String(value)}
               </p>
             ))}
@@ -356,6 +444,41 @@ const PersonalFields = ({
           </label>
         ))}
       </div>
+    </div>
+  </div>
+);
+
+const SectionTypographyFields = ({
+  section,
+  onUpdateConfig,
+}: {
+  section: ResumeSection;
+  onUpdateConfig: (sectionId: string, key: string, value: unknown) => void;
+}) => (
+  <div className={`rounded-lg border ${colorClasses.border} bg-[#f8f9fa] p-4`}>
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <h4 className="text-sm font-black text-[#090a0b]">Font Sizes</h4>
+      <span className="text-xs font-semibold text-[#777587]">
+        Saved in section config
+      </span>
+    </div>
+    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      {sectionTypographyControls.map((control) => (
+        <label key={control.key}>
+          <span className={typographyStyles.label}>{control.label}</span>
+          <select
+            value={getSectionFontSize(section, control.key)}
+            onChange={(event) => onUpdateConfig(section.id, control.key, Number(event.target.value))}
+            className={`mt-1.5 h-10 w-full px-3 ${componentStyles.input}`}
+          >
+            {sectionFontSizeOptions.map((size) => (
+              <option key={size} value={size}>
+                {size}px
+              </option>
+            ))}
+          </select>
+        </label>
+      ))}
     </div>
   </div>
 );
@@ -536,6 +659,92 @@ const examples = [
   "In-depth experience building, leading, and improving systems while following company standards.",
 ];
 
+const tips = [
+  "Keep each section focused on outcomes and measurable impact.",
+  "Use short, direct sentences that scan well in a resume.",
+  "Tune font sizes section by section when one area needs more visual weight.",
+];
+
+const EditSidePanel = ({
+  step,
+  onUpdateConfig,
+}: {
+  step: BuilderStep;
+  onUpdateConfig: (sectionId: string, key: string, value: unknown) => void;
+}) => {
+  const [activeTab, setActiveTab] = useState<EditorSideTab>("examples");
+  const availableTabs: EditorSideTab[] =
+    step.type === "section" ? ["tips", "examples", "config"] : ["tips", "examples"];
+  const effectiveActiveTab =
+    step.type === "personal" && activeTab === "config" ? "examples" : activeTab;
+
+  return (
+    <aside className="border-t border-[#ececec] bg-[#f8f9fa] px-6 py-8 lg:border-l lg:border-t-0">
+      <div className="flex gap-8 border-b border-[#dcdde0] text-[18px] font-black">
+        {availableTabs.map((tab) => {
+          const isActive = effectiveActiveTab === tab;
+
+          return (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={cx(
+                "pb-3 capitalize transition hover:text-[#2d5bb3]",
+                isActive
+                  ? "border-b-2 border-[#2d5bb3] text-[#2d5bb3]"
+                  : "text-[#707070]",
+              )}
+            >
+              {tab}
+            </button>
+          );
+        })}
+      </div>
+
+      {effectiveActiveTab === "tips" && (
+        <div className="mt-6 space-y-4">
+          {tips.map((tip) => (
+            <div key={tip} className="rounded-lg bg-white px-5 py-4 text-[16px] leading-6 text-[#303041]">
+              {tip}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {effectiveActiveTab === "examples" && (
+        <>
+          <label className="mt-6 flex h-12 items-center gap-3 rounded-lg bg-white px-4 text-[#707070]">
+            <input
+              placeholder="Search job titles"
+              className="min-w-0 flex-1 bg-transparent text-base outline-none"
+            />
+            <FiSearch size={22} />
+          </label>
+          <div className="mt-5 space-y-4">
+            {examples.map((example) => (
+              <button
+                key={example}
+                type="button"
+                className="grid w-full grid-cols-[38px_1fr] items-center gap-4 rounded-lg bg-white px-5 py-5 text-left text-[16px] leading-6 text-[#303041] transition hover:text-[#2d5bb3]"
+              >
+                <span className="text-[34px] leading-none">+</span>
+                <span>{example}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {effectiveActiveTab === "config" && step.type === "section" && (
+        <div className="mt-6">
+          <SectionTypographyFields section={step.section} onUpdateConfig={onUpdateConfig} />
+        </div>
+      )}
+    </aside>
+  );
+};
+
 const EditModal = ({
   step,
   stepNumber,
@@ -545,6 +754,7 @@ const EditModal = ({
   onNext,
   onPrevious,
   onToggle,
+  onUpdateConfig,
   onUpdateContent,
   updatePersonalInformation,
   updateLocation,
@@ -558,6 +768,7 @@ const EditModal = ({
   onNext: () => void;
   onPrevious: () => void;
   onToggle: (sectionId: string) => void;
+  onUpdateConfig: (sectionId: string, key: string, value: unknown) => void;
   onUpdateContent: (sectionId: string, key: string, value: unknown) => void;
   updatePersonalInformation: (key: keyof Resume["personalInformation"], value: string) => void;
   updateLocation: (key: string, value: string) => void;
@@ -610,31 +821,7 @@ const EditModal = ({
           )}
         </div>
 
-        <aside className="border-t border-[#ececec] bg-[#f8f9fa] px-6 py-8 lg:border-l lg:border-t-0">
-          <div className="flex gap-8 border-b border-[#dcdde0] text-[18px] font-black">
-            <span className="pb-3 text-[#707070]">Tips</span>
-            <span className="border-b-2 border-[#2d5bb3] pb-3 text-[#2d5bb3]">Examples</span>
-          </div>
-          <label className="mt-6 flex h-12 items-center gap-3 rounded-lg bg-white px-4 text-[#707070]">
-            <input
-              placeholder="Search job titles"
-              className="min-w-0 flex-1 bg-transparent text-base outline-none"
-            />
-            <FiSearch size={22} />
-          </label>
-          <div className="mt-5 space-y-4">
-            {examples.map((example) => (
-              <button
-                key={example}
-                type="button"
-                className="grid w-full grid-cols-[38px_1fr] items-center gap-4 rounded-lg bg-white px-5 py-5 text-left text-[16px] leading-6 text-[#303041] transition hover:text-[#2d5bb3]"
-              >
-                <span className="text-[34px] leading-none">+</span>
-                <span>{example}</span>
-              </button>
-            ))}
-          </div>
-        </aside>
+        <EditSidePanel step={step} onUpdateConfig={onUpdateConfig} />
       </div>
 
       <div className={`flex items-center justify-between border-t ${colorClasses.border} px-6 py-5`}>
@@ -681,6 +868,7 @@ const ResumeBuilder = () => {
     updateLocation,
     updateMetadata,
     updatePersonalInformation,
+    updateSectionConfig,
     updateSectionItemContent,
     updateSocialLink,
     updateTags,
@@ -929,6 +1117,7 @@ const ResumeBuilder = () => {
             onNext={() => moveStep(1)}
             onPrevious={() => moveStep(-1)}
             onToggle={toggleSection}
+            onUpdateConfig={updateSectionConfig}
             onUpdateContent={updateSectionItemContent}
             updatePersonalInformation={updatePersonalInformation}
             updateLocation={updateLocation}

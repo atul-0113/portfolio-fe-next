@@ -1,4 +1,5 @@
 import { Resume, ResumeSection } from "@/types/api";
+import { getSectionFontSize } from "@/utils/resumeTypography";
 
 const socialLinkFields = [
   ["portfolio", "Portfolio"],
@@ -86,34 +87,43 @@ const renderSocialLinkIcon = (type: string, label: string) => {
   return `<span class="social-icon" aria-label="${escapeHtml(label)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">${iconPath}</svg></span>`;
 };
 
+const getSectionTypographyVariables = (section: ResumeSection) =>
+  [
+    `--heading-font-size: ${getSectionFontSize(section, "headingFontSize")}px`,
+    `--item-title-font-size: ${getSectionFontSize(section, "itemTitleFontSize")}px`,
+    `--meta-font-size: ${getSectionFontSize(section, "metaFontSize")}px`,
+    `--paragraph-font-size: ${getSectionFontSize(section, "paragraphFontSize")}px`,
+  ].join("; ");
+
 const renderSection = (section: ResumeSection) => {
   if (!section.isVisible) {
     return "";
   }
 
   const content = section.items[0]?.content || {};
+  const sectionStyle = getSectionTypographyVariables(section);
 
   if (section.type === "summary") {
-    return `<section><h2>Summary</h2><p>${escapeHtml(getString(content.text) || "No summary added.")}</p></section>`;
+    return `<section style="${sectionStyle}"><h2>Summary</h2><p>${escapeHtml(getString(content.text) || "No summary added.")}</p></section>`;
   }
 
   if (section.type === "experience") {
     const dates = [getString(content.startDate), getString(content.endDate)].filter(Boolean).join(" - ");
-    return `<section><h2>Experience</h2><div class="row"><div><h3>${escapeHtml(getString(content.companyName) || "Company")}</h3><p class="muted">${escapeHtml(getString(content.jobTitle) || "Role")}</p></div><p class="muted">${escapeHtml(dates)}</p></div><p>${escapeHtml(getString(content.description))}</p></section>`;
+    return `<section style="${sectionStyle}"><h2>Experience</h2><div class="row"><div><h3>${escapeHtml(getString(content.companyName) || "Company")}</h3><p class="muted">${escapeHtml(getString(content.jobTitle) || "Role")}</p></div><p class="muted">${escapeHtml(dates)}</p></div><p>${escapeHtml(getString(content.description))}</p></section>`;
   }
 
   if (section.type === "education") {
     const details = [getString(content.degree), getString(content.fieldOfStudy)].filter(Boolean).join(" | ");
-    return `<section><h2>Education</h2><h3>${escapeHtml(getString(content.institutionName) || "Institution")}</h3><p class="muted">${escapeHtml(details)}</p></section>`;
+    return `<section style="${sectionStyle}"><h2>Education</h2><h3>${escapeHtml(getString(content.institutionName) || "Institution")}</h3><p class="muted">${escapeHtml(details)}</p></section>`;
   }
 
   if (section.type === "skills") {
     const skills = getSkillNames(content.skills).join(", ") || getString(content.category);
-    return `<section><h2>Skills</h2><p>${escapeHtml(skills || "No skills added.")}</p></section>`;
+    return `<section style="${sectionStyle}"><h2>Skills</h2><p>${escapeHtml(skills || "No skills added.")}</p></section>`;
   }
 
   if (section.type === "projects") {
-    return `<section><h2>Projects</h2><h3>${escapeHtml(getString(content.projectName) || "Project")}</h3><p>${escapeHtml(getString(content.description))}</p><p class="muted">${escapeHtml(getStringList(content.technologies).join(" | "))}</p></section>`;
+    return `<section style="${sectionStyle}"><h2>Projects</h2><h3>${escapeHtml(getString(content.projectName) || "Project")}</h3><p>${escapeHtml(getString(content.description))}</p><p class="muted">${escapeHtml(getStringList(content.technologies).join(" | "))}</p></section>`;
   }
 
   const lines = Object.entries(content)
@@ -122,7 +132,7 @@ const renderSection = (section: ResumeSection) => {
     .map(([, value]) => `<p>${escapeHtml(String(value))}</p>`)
     .join("");
 
-  return `<section><h2>${escapeHtml(section.title)}</h2>${lines}</section>`;
+  return `<section style="${sectionStyle}"><h2>${escapeHtml(section.title)}</h2>${lines}</section>`;
 };
 
 export const downloadResumePdf = (resume: Resume) => {
@@ -167,6 +177,10 @@ export const downloadResumePdf = (resume: Resume) => {
       .social-icon svg { width: 16px; height: 16px; stroke-width: 2.1; }
       section { padding-top: 26px; margin-top: 26px; border-top: 1px solid #c9c9c9; }
       section:first-of-type { border-top: 0; }
+      section h2 { font-size: var(--heading-font-size, 18px); }
+      section h3 { font-size: var(--item-title-font-size, 22px); }
+      section p { font-size: var(--paragraph-font-size, 18px); }
+      section .muted { font-size: var(--meta-font-size, 16px); }
       .row { display: flex; justify-content: space-between; gap: 24px; }
       .muted { color: #707070; font-family: Arial, sans-serif; }
       @media print {

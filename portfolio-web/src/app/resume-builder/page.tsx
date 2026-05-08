@@ -8,6 +8,7 @@ import { badgeColorClasses, colorClasses } from "@/styles/theme";
 import { componentStyles, cx, layoutStyles, typographyStyles } from "@/styles/ui";
 import { Resume, ResumeSection } from "@/types/api";
 import { downloadResumePdf, getResumeContactParts } from "@/utils/resumeDownload";
+import { getSectionFontSizeStyle } from "@/utils/resumeTypography";
 import {
   FiDownload,
   FiEdit3,
@@ -123,8 +124,16 @@ const ResumePreviewSection = ({ section }: { section: ResumeSection }) => {
   if (section.type === "summary") {
     return (
       <section>
-        <h3 className="mb-3 text-[18px] font-black text-black">Summary</h3>
-        <p className="font-serif text-[18px] leading-8 text-[#6f6f6f]">
+        <h3
+          className="mb-3 font-black text-black"
+          style={getSectionFontSizeStyle(section, "headingFontSize")}
+        >
+          Summary
+        </h3>
+        <p
+          className="font-serif leading-8 text-[#6f6f6f]"
+          style={getSectionFontSizeStyle(section, "paragraphFontSize")}
+        >
           {getString(content.text) || "No summary added."}
         </p>
       </section>
@@ -134,21 +143,38 @@ const ResumePreviewSection = ({ section }: { section: ResumeSection }) => {
   if (section.type === "experience") {
     return (
       <section>
-        <h3 className="mb-4 text-[18px] font-black text-black">Experience</h3>
+        <h3
+          className="mb-4 font-black text-black"
+          style={getSectionFontSizeStyle(section, "headingFontSize")}
+        >
+          Experience
+        </h3>
         <div className="flex items-start justify-between gap-8">
           <div>
-            <p className="text-[22px] font-black text-[#707070]">
+            <p
+              className="font-black text-[#707070]"
+              style={getSectionFontSizeStyle(section, "itemTitleFontSize")}
+            >
               {getString(content.companyName) || "Company"}
             </p>
-            <p className="mt-1 text-[16px] text-[#707070]">
+            <p
+              className="mt-1 text-[#707070]"
+              style={getSectionFontSizeStyle(section, "metaFontSize")}
+            >
               {getString(content.jobTitle) || "Role"}
             </p>
           </div>
-          <p className="shrink-0 text-[16px] text-[#707070]">
+          <p
+            className="shrink-0 text-[#707070]"
+            style={getSectionFontSizeStyle(section, "metaFontSize")}
+          >
             {[getString(content.startDate), getString(content.endDate)].filter(Boolean).join(" - ")}
           </p>
         </div>
-        <p className="mt-4 font-serif text-[18px] leading-8 text-[#6f6f6f]">
+        <p
+          className="mt-4 font-serif leading-8 text-[#6f6f6f]"
+          style={getSectionFontSizeStyle(section, "paragraphFontSize")}
+        >
           {getString(content.description)}
         </p>
       </section>
@@ -158,11 +184,22 @@ const ResumePreviewSection = ({ section }: { section: ResumeSection }) => {
   if (section.type === "education") {
     return (
       <section>
-        <h3 className="mb-4 text-[18px] font-black text-black">Education</h3>
-        <p className="text-[22px] font-black text-[#707070]">
+        <h3
+          className="mb-4 font-black text-black"
+          style={getSectionFontSizeStyle(section, "headingFontSize")}
+        >
+          Education
+        </h3>
+        <p
+          className="font-black text-[#707070]"
+          style={getSectionFontSizeStyle(section, "itemTitleFontSize")}
+        >
           {getString(content.institutionName) || "Institution"}
         </p>
-        <p className="mt-1 text-[16px] text-[#707070]">
+        <p
+          className="mt-1 text-[#707070]"
+          style={getSectionFontSizeStyle(section, "metaFontSize")}
+        >
           {[getString(content.degree), getString(content.fieldOfStudy)].filter(Boolean).join(" · ")}
         </p>
       </section>
@@ -174,8 +211,16 @@ const ResumePreviewSection = ({ section }: { section: ResumeSection }) => {
 
     return (
       <section>
-        <h3 className="mb-3 text-[18px] font-black text-black">Skills</h3>
-        <p className="font-serif text-[18px] leading-8 text-[#6f6f6f]">
+        <h3
+          className="mb-3 font-black text-black"
+          style={getSectionFontSizeStyle(section, "headingFontSize")}
+        >
+          Skills
+        </h3>
+        <p
+          className="font-serif leading-8 text-[#6f6f6f]"
+          style={getSectionFontSizeStyle(section, "paragraphFontSize")}
+        >
           {skills.join(", ") || getString(content.category) || "No skills added."}
         </p>
       </section>
@@ -185,14 +230,28 @@ const ResumePreviewSection = ({ section }: { section: ResumeSection }) => {
   if (section.type === "projects") {
     return (
       <section>
-        <h3 className="mb-3 text-[18px] font-black text-black">Projects</h3>
-        <p className="text-[22px] font-black text-[#707070]">
+        <h3
+          className="mb-3 font-black text-black"
+          style={getSectionFontSizeStyle(section, "headingFontSize")}
+        >
+          Projects
+        </h3>
+        <p
+          className="font-black text-[#707070]"
+          style={getSectionFontSizeStyle(section, "itemTitleFontSize")}
+        >
           {getString(content.projectName) || "Project"}
         </p>
-        <p className="mt-2 font-serif text-[18px] leading-8 text-[#6f6f6f]">
+        <p
+          className="mt-2 font-serif leading-8 text-[#6f6f6f]"
+          style={getSectionFontSizeStyle(section, "paragraphFontSize")}
+        >
           {getString(content.description)}
         </p>
-        <p className="mt-2 text-[15px] text-[#707070]">
+        <p
+          className="mt-2 text-[#707070]"
+          style={getSectionFontSizeStyle(section, "metaFontSize")}
+        >
           {getStringList(content.technologies).join(" · ")}
         </p>
       </section>
@@ -201,8 +260,16 @@ const ResumePreviewSection = ({ section }: { section: ResumeSection }) => {
 
   return (
     <section>
-      <h3 className="mb-3 text-[18px] font-black text-black">{section.title}</h3>
-      <div className="font-serif text-[18px] leading-8 text-[#6f6f6f]">
+      <h3
+        className="mb-3 font-black text-black"
+        style={getSectionFontSizeStyle(section, "headingFontSize")}
+      >
+        {section.title}
+      </h3>
+      <div
+        className="font-serif leading-8 text-[#6f6f6f]"
+        style={getSectionFontSizeStyle(section, "paragraphFontSize")}
+      >
         {Object.entries(content)
           .filter(([, value]) => typeof value === "string" && value)
           .slice(0, 3)
