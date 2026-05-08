@@ -7,17 +7,31 @@ import { useResumeBuilder } from "@/hooks/useResumeBuilder";
 import { colorClasses } from "@/styles/theme";
 import { componentStyles, cx, layoutStyles, typographyStyles } from "@/styles/ui";
 import { Resume, ResumeSection } from "@/types/api";
+import { downloadResumePdf, getResumeContactParts } from "@/utils/resumeDownload";
 import {
   FiCheckCircle,
   FiChevronLeft,
   FiChevronRight,
+  FiDownload,
   FiEdit3,
   FiEye,
   FiEyeOff,
+  FiGlobe,
   FiSave,
   FiSearch,
   FiX,
 } from "react-icons/fi";
+import {
+  FaBehance,
+  FaDribbble,
+  FaFacebookF,
+  FaGithub,
+  FaInstagram,
+  FaLinkedinIn,
+  FaMediumM,
+  FaTwitter,
+  FaYoutube,
+} from "react-icons/fa";
 
 type BuilderStep =
   | {
@@ -56,6 +70,55 @@ const formatKey = (key: string) =>
   key
     .replace(/([A-Z])/g, " $1")
     .replace(/^./, (character) => character.toUpperCase());
+
+const socialLinkFields = [
+  ["portfolio", "Portfolio"],
+  ["linkedin", "LinkedIn"],
+  ["github", "GitHub"],
+  ["instagram", "Instagram"],
+  ["twitter", "Twitter / X"],
+  ["facebook", "Facebook"],
+  ["youtube", "YouTube"],
+  ["medium", "Medium"],
+  ["behance", "Behance"],
+  ["dribbble", "Dribbble"],
+];
+
+const getVisibleSocialLinks = (resume: Resume) =>
+  socialLinkFields
+    .map(([key, label]) => ({
+      key,
+      label,
+      url: resume.personalInformation.socialLinks?.[key] || "",
+    }))
+    .filter((item) => item.url.trim());
+
+const SocialLinkIcon = ({ type }: { type: string }) => {
+  const iconProps = { size: 16, "aria-hidden": true };
+
+  switch (type) {
+    case "linkedin":
+      return <FaLinkedinIn {...iconProps} />;
+    case "github":
+      return <FaGithub {...iconProps} />;
+    case "instagram":
+      return <FaInstagram {...iconProps} />;
+    case "twitter":
+      return <FaTwitter {...iconProps} />;
+    case "facebook":
+      return <FaFacebookF {...iconProps} />;
+    case "youtube":
+      return <FaYoutube {...iconProps} />;
+    case "medium":
+      return <FaMediumM {...iconProps} />;
+    case "behance":
+      return <FaBehance {...iconProps} />;
+    case "dribbble":
+      return <FaDribbble {...iconProps} />;
+    default:
+      return <FiGlobe {...iconProps} />;
+  }
+};
 
 const editableFrame =
   "group relative -mx-3 rounded-md border border-transparent px-3 py-2 transition hover:border-dashed hover:border-[#3525cd] hover:bg-[#f8f9fa]";
@@ -236,10 +299,12 @@ const PersonalFields = ({
   resume,
   updatePersonalInformation,
   updateLocation,
+  updateSocialLink,
 }: {
   resume: Resume;
   updatePersonalInformation: (key: keyof Resume["personalInformation"], value: string) => void;
   updateLocation: (key: string, value: string) => void;
+  updateSocialLink: (key: string, value: string) => void;
 }) => (
   <div className="grid gap-4 md:grid-cols-2">
     {[
@@ -275,6 +340,23 @@ const PersonalFields = ({
         />
       </label>
     ))}
+
+    <div className="md:col-span-2">
+      <h3 className="text-sm font-bold text-[#090a0b]">Social Links</h3>
+      <div className="mt-3 grid gap-4 md:grid-cols-2">
+        {socialLinkFields.map(([key, label]) => (
+          <label key={key}>
+            <span className={typographyStyles.label}>{label}</span>
+            <input
+              value={resume.personalInformation.socialLinks?.[key] || ""}
+              onChange={(event) => updateSocialLink(key, event.target.value)}
+              className={`mt-1.5 h-11 w-full px-3 ${componentStyles.input}`}
+              placeholder="https://"
+            />
+          </label>
+        ))}
+      </div>
+    </div>
   </div>
 );
 
@@ -466,6 +548,7 @@ const EditModal = ({
   onUpdateContent,
   updatePersonalInformation,
   updateLocation,
+  updateSocialLink,
 }: {
   step: BuilderStep;
   stepNumber: number;
@@ -478,6 +561,7 @@ const EditModal = ({
   onUpdateContent: (sectionId: string, key: string, value: unknown) => void;
   updatePersonalInformation: (key: keyof Resume["personalInformation"], value: string) => void;
   updateLocation: (key: string, value: string) => void;
+  updateSocialLink: (key: string, value: string) => void;
 }) => (
   <div className="fixed inset-0 z-99999 flex items-center justify-center bg-[#090a0b]/55 px-4 py-6">
     <button
@@ -515,6 +599,7 @@ const EditModal = ({
               resume={resume}
               updatePersonalInformation={updatePersonalInformation}
               updateLocation={updateLocation}
+              updateSocialLink={updateSocialLink}
             />
           ) : (
             <SectionFields
@@ -597,6 +682,7 @@ const ResumeBuilder = () => {
     updateMetadata,
     updatePersonalInformation,
     updateSectionItemContent,
+    updateSocialLink,
     updateTags,
   } = useResumeBuilder();
   const router = useRouter();
@@ -670,6 +756,14 @@ const ResumeBuilder = () => {
             </button>
             <button
               type="button"
+              onClick={() => downloadResumePdf(resume)}
+              className={componentStyles.buttonSecondary}
+            >
+              <FiDownload size={18} />
+              Download PDF
+            </button>
+            <button
+              type="button"
               onClick={saveResume}
               disabled={isSaving}
               className={componentStyles.buttonPrimary}
@@ -702,22 +796,38 @@ const ResumeBuilder = () => {
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="min-w-0 rounded-lg bg-[#f3f4f5] px-3 py-6 shadow-inner sm:px-5 lg:px-8">
             <article className="mx-auto min-h-[980px] w-full max-w-[860px] bg-white px-6 py-8 text-black shadow-xl sm:px-9 sm:py-10 lg:px-12 lg:py-12">
-              <div className="mb-12 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(180px,42%)] lg:items-start">
+              <div className="mb-12">
                 <EditableBlock label="contact information" onEdit={() => setActiveStepIndex(0)}>
-                  <h2 className="break-words text-[34px] font-black leading-none tracking-normal text-black sm:text-[42px] lg:text-[48px]">
+                  <h2 className="break-words text-[30px] font-black leading-none tracking-normal text-black sm:text-[42px] lg:text-[48px]">
                     {resume.personalInformation.fullName || "Atul Sharma"}
                   </h2>
-                  <div className="mt-9 space-y-2 font-serif text-[19px] leading-7 text-[#6f6f6f]">
-                    <p>
-                      {[resume.personalInformation.location.city, resume.personalInformation.location.state]
-                        .filter(Boolean)
-                        .join(", ") || "City, State"}
-                    </p>
-                    <p>{resume.personalInformation.email || "Email@example.com"}</p>
-                    <p>{resume.personalInformation.phone || "Phone Number"}</p>
+                  <div className="mt-9 flex flex-wrap items-center gap-x-3 gap-y-1 font-serif text-[17px] leading-7 text-[#6f6f6f]">
+                    {(getResumeContactParts(resume).length
+                      ? getResumeContactParts(resume)
+                      : ["City, State", "Email@example.com", "Phone Number"]
+                    ).map((part, index) => (
+                      <span key={`${part}-${index}`} className="inline-flex items-center gap-3">
+                        {index > 0 && <span>|</span>}
+                        <span>{part}</span>
+                      </span>
+                    ))}
                   </div>
+                  <div className="mt-6 h-2 w-full bg-black" />
+                  {getVisibleSocialLinks(resume).length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[15px] font-semibold text-[#707070]">
+                      {getVisibleSocialLinks(resume).map((link) => (
+                        <span
+                          key={link.key}
+                          className="inline-flex min-w-0 items-center gap-2 break-all"
+                          title={link.label}
+                        >
+                          <SocialLinkIcon type={link.key} />
+                          <span>{link.url}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </EditableBlock>
-                <div className="h-2 w-full bg-black lg:mt-1" />
               </div>
 
               {resume.sections.map((section) => (
@@ -822,6 +932,7 @@ const ResumeBuilder = () => {
             onUpdateContent={updateSectionItemContent}
             updatePersonalInformation={updatePersonalInformation}
             updateLocation={updateLocation}
+            updateSocialLink={updateSocialLink}
           />
         )}
       </section>

@@ -7,14 +7,28 @@ import { useResumeBuilder } from "@/hooks/useResumeBuilder";
 import { badgeColorClasses, colorClasses } from "@/styles/theme";
 import { componentStyles, cx, layoutStyles, typographyStyles } from "@/styles/ui";
 import { Resume, ResumeSection } from "@/types/api";
+import { downloadResumePdf, getResumeContactParts } from "@/utils/resumeDownload";
 import {
+  FiDownload,
   FiEdit3,
   FiFileText,
+  FiGlobe,
   FiPlus,
   FiRefreshCw,
   FiTrash2,
   FiX,
 } from "react-icons/fi";
+import {
+  FaBehance,
+  FaDribbble,
+  FaFacebookF,
+  FaGithub,
+  FaInstagram,
+  FaLinkedinIn,
+  FaMediumM,
+  FaTwitter,
+  FaYoutube,
+} from "react-icons/fa";
 
 const formatLastUpdated = (value?: string) => {
   if (!value) {
@@ -49,6 +63,55 @@ const getSkillNames = (value: unknown) =>
         )
         .filter(Boolean)
     : [];
+
+const socialLinkFields = [
+  ["portfolio", "Portfolio"],
+  ["linkedin", "LinkedIn"],
+  ["github", "GitHub"],
+  ["instagram", "Instagram"],
+  ["twitter", "Twitter / X"],
+  ["facebook", "Facebook"],
+  ["youtube", "YouTube"],
+  ["medium", "Medium"],
+  ["behance", "Behance"],
+  ["dribbble", "Dribbble"],
+];
+
+const getVisibleSocialLinks = (resume: Resume) =>
+  socialLinkFields
+    .map(([key, label]) => ({
+      key,
+      label,
+      url: resume.personalInformation.socialLinks?.[key] || "",
+    }))
+    .filter((item) => item.url.trim());
+
+const SocialLinkIcon = ({ type }: { type: string }) => {
+  const iconProps = { size: 16, "aria-hidden": true };
+
+  switch (type) {
+    case "linkedin":
+      return <FaLinkedinIn {...iconProps} />;
+    case "github":
+      return <FaGithub {...iconProps} />;
+    case "instagram":
+      return <FaInstagram {...iconProps} />;
+    case "twitter":
+      return <FaTwitter {...iconProps} />;
+    case "facebook":
+      return <FaFacebookF {...iconProps} />;
+    case "youtube":
+      return <FaYoutube {...iconProps} />;
+    case "medium":
+      return <FaMediumM {...iconProps} />;
+    case "behance":
+      return <FaBehance {...iconProps} />;
+    case "dribbble":
+      return <FaDribbble {...iconProps} />;
+    default:
+      return <FiGlobe {...iconProps} />;
+  }
+};
 
 const ResumePreviewSection = ({ section }: { section: ResumeSection }) => {
   const content = section.items[0]?.content || {};
@@ -189,28 +252,44 @@ const ResumePreviewModal = ({
 
         {!isLoading && resume && (
           <article className="mx-auto min-h-[920px] max-w-[760px] bg-white px-12 py-12 text-black shadow-xl">
-            <div className="mb-12 flex items-start justify-between gap-10">
+            <div className="mb-12">
               <div>
                 <h1 className="text-[44px] font-black leading-none text-black">
                   {resume.personalInformation.fullName ||
                     resume.user?.name ||
                     "Untitled Candidate"}
                 </h1>
-                <div className="mt-7 space-y-1 font-serif text-[18px] text-[#6f6f6f]">
-                  <p>
-                    {[resume.personalInformation.location.city, resume.personalInformation.location.state]
-                      .filter(Boolean)
-                      .join(", ") || "Location not added"}
-                  </p>
-                  <p>{resume.personalInformation.email || resume.user?.email || "Email not added"}</p>
-                  <p>{resume.personalInformation.phone || "Phone not added"}</p>
+                <div className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-1 font-serif text-[17px] text-[#6f6f6f]">
+                  {(getResumeContactParts(resume).length
+                    ? getResumeContactParts(resume)
+                    : ["Location not added", "Email not added", "Phone not added"]
+                  ).map((part, index) => (
+                    <span key={`${part}-${index}`} className="inline-flex items-center gap-3">
+                      {index > 0 && <span>|</span>}
+                      <span>{part}</span>
+                    </span>
+                  ))}
                 </div>
+                <div className="mt-6 h-2 w-full bg-black" />
+                {getVisibleSocialLinks(resume).length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[15px] font-semibold text-[#707070]">
+                    {getVisibleSocialLinks(resume).map((link) => (
+                      <span
+                        key={link.key}
+                        className="inline-flex min-w-0 items-center gap-2 break-all"
+                        title={link.label}
+                      >
+                        <SocialLinkIcon type={link.key} />
+                        <span>{link.url}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="mt-1 h-2 w-[280px] shrink-0 bg-black" />
             </div>
 
             <div className="space-y-8 divide-y divide-[#c9c9c9]">
-              {resume.sections.map((section) => (
+              {resume.sections.filter((section) => section.isVisible).map((section) => (
                 <div key={section.id} className="pt-8 first:pt-0">
                   <ResumePreviewSection section={section} />
                 </div>
@@ -222,6 +301,14 @@ const ResumePreviewModal = ({
 
       {resume && (
         <div className={`flex items-center justify-end gap-3 border-t ${colorClasses.border} px-6 py-4`}>
+          <button
+            type="button"
+            onClick={() => downloadResumePdf(resume)}
+            className={componentStyles.buttonSecondary}
+          >
+            <FiDownload size={18} />
+            Download PDF
+          </button>
           <button
             type="button"
             onClick={() => onEdit(resume)}

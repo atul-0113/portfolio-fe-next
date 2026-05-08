@@ -232,7 +232,9 @@ const initialPersonalInformation: ResumePersonalInformation = {
     portfolio: "",
     linkedin: "",
     github: "",
+    instagram: "",
     twitter: "",
+    facebook: "",
     behance: "",
     dribbble: "",
     medium: "",
@@ -364,6 +366,28 @@ export const useResumeBuilder = () => {
         ...currentPersonalInformation,
         location: {
           ...currentPersonalInformation.location,
+          [key]: value,
+        },
+      };
+
+      return {
+        ...current,
+        metadata: {
+          ...current.metadata,
+          personalInformation: nextPersonalInformation,
+        },
+        personalInformation: nextPersonalInformation,
+      };
+    });
+  }, []);
+
+  const updateSocialLink = useCallback((key: string, value: string) => {
+    setResume((current) => {
+      const currentPersonalInformation = current.metadata.personalInformation;
+      const nextPersonalInformation = {
+        ...currentPersonalInformation,
+        socialLinks: {
+          ...currentPersonalInformation.socialLinks,
           [key]: value,
         },
       };
@@ -608,6 +632,7 @@ export const useResumeBuilder = () => {
     updateMetadata,
     updatePersonalInformation,
     updateSectionItemContent,
+    updateSocialLink,
     updateTags,
   };
 };
