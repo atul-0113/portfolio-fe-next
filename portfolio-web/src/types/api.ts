@@ -110,6 +110,54 @@ export interface ResumeMetric {
   value: string;
 }
 
+export interface ResumePersonalInformation {
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  headline: string;
+  email: string;
+  phone: string;
+  location: ResumeLocation;
+  profilePhoto: string;
+  summary: string;
+  socialLinks: Record<string, string>;
+}
+
+export interface ResumeThemeSettings {
+  fontFamily: string;
+  fontSize: number;
+  lineHeight: number;
+  primaryColor: string;
+  secondaryColor: string;
+  backgroundColor: string;
+  layout: string;
+  spacing: {
+    sectionGap: number;
+    itemGap: number;
+    pagePadding: number;
+  };
+  showIcons: boolean;
+  showProfilePhoto: boolean;
+  pageFormat: string;
+}
+
+export interface ResumeExportConfigurations {
+  allowPdfExport: boolean;
+  allowDocxExport: boolean;
+  allowPublicSharing: boolean;
+  publicResumeUrl: string;
+  pdfSettings: {
+    pageSize: string;
+    margin: number;
+    scale: number;
+  };
+  privacy: {
+    hideEmail: boolean;
+    hidePhone: boolean;
+    hideLocation: boolean;
+  };
+}
+
 export interface Resume {
   id?: string;
   userId?: string;
@@ -133,53 +181,19 @@ export interface Resume {
     tags: string[];
     createdAt?: string;
     updatedAt?: string;
+    personalInformation: ResumePersonalInformation;
+    sections: ResumeSection[];
+    themeSettings: ResumeThemeSettings;
+    exportConfigurations: ResumeExportConfigurations;
   };
-  personalInformation: {
-    firstName: string;
-    lastName: string;
-    fullName: string;
-    headline: string;
-    email: string;
-    phone: string;
-    location: ResumeLocation;
-    profilePhoto: string;
-    summary: string;
-    socialLinks: Record<string, string>;
-  };
+  /** @deprecated use metadata.personalInformation */
+  personalInformation: ResumePersonalInformation;
+  /** @deprecated use metadata.sections */
   sections: ResumeSection[];
-  themeSettings: {
-    fontFamily: string;
-    fontSize: number;
-    lineHeight: number;
-    primaryColor: string;
-    secondaryColor: string;
-    backgroundColor: string;
-    layout: string;
-    spacing: {
-      sectionGap: number;
-      itemGap: number;
-      pagePadding: number;
-    };
-    showIcons: boolean;
-    showProfilePhoto: boolean;
-    pageFormat: string;
-  };
-  exportConfigurations: {
-    allowPdfExport: boolean;
-    allowDocxExport: boolean;
-    allowPublicSharing: boolean;
-    publicResumeUrl: string;
-    pdfSettings: {
-      pageSize: string;
-      margin: number;
-      scale: number;
-    };
-    privacy: {
-      hideEmail: boolean;
-      hidePhone: boolean;
-      hideLocation: boolean;
-    };
-  };
+  /** @deprecated use metadata.themeSettings */
+  themeSettings: ResumeThemeSettings;
+  /** @deprecated use metadata.exportConfigurations */
+  exportConfigurations: ResumeExportConfigurations;
 }
 
 export interface ResumeSection {

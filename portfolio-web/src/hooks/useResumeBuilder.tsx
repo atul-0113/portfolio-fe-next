@@ -2,8 +2,21 @@
 
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/app/auth/AuthContext";
-import { createResume, getResumes } from "@/services/resumeService";
-import { Resume, ResumeResponse, ResumeSection } from "@/types/api";
+import {
+  createResume,
+  deleteResume,
+  getResume,
+  getResumes,
+  updateResume,
+} from "@/services/resumeService";
+import {
+  Resume,
+  ResumeExportConfigurations,
+  ResumePersonalInformation,
+  ResumeResponse,
+  ResumeSection,
+  ResumeThemeSettings,
+} from "@/types/api";
 
 const makeId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
@@ -201,6 +214,67 @@ const initialSections: ResumeSection[] = [
   },
 ];
 
+const initialPersonalInformation: ResumePersonalInformation = {
+  firstName: "Atul",
+  lastName: "Sharma",
+  fullName: "Atul Sharma",
+  headline: "Senior Frontend Engineer",
+  email: "atul@example.com",
+  phone: "+91XXXXXXXXXX",
+  location: {
+    city: "Noida",
+    state: "Uttar Pradesh",
+    country: "India",
+  },
+  profilePhoto: "",
+  summary: "Experienced frontend engineer specializing in scalable web applications.",
+  socialLinks: {
+    portfolio: "",
+    linkedin: "",
+    github: "",
+    twitter: "",
+    behance: "",
+    dribbble: "",
+    medium: "",
+    youtube: "",
+  },
+};
+
+const initialThemeSettings: ResumeThemeSettings = {
+  fontFamily: "Inter",
+  fontSize: 14,
+  lineHeight: 1.5,
+  primaryColor: "#111111",
+  secondaryColor: "#666666",
+  backgroundColor: "#FFFFFF",
+  layout: "single-column",
+  spacing: {
+    sectionGap: 24,
+    itemGap: 12,
+    pagePadding: 32,
+  },
+  showIcons: true,
+  showProfilePhoto: false,
+  pageFormat: "A4",
+};
+
+const initialExportConfigurations: ResumeExportConfigurations = {
+  allowPdfExport: true,
+  allowDocxExport: true,
+  allowPublicSharing: true,
+  publicResumeUrl: "",
+  pdfSettings: {
+    pageSize: "A4",
+    margin: 24,
+    scale: 1,
+  },
+  privacy: {
+    hideEmail: false,
+    hidePhone: false,
+    hideLocation: false,
+  },
+};
+
 const initialResume: Resume = {
   metadata: {
     title: "Senior Frontend Engineer Resume",
@@ -214,66 +288,15 @@ const initialResume: Resume = {
     version: 1,
     isPrimary: false,
     tags: ["frontend", "react", "nextjs"],
+    personalInformation: initialPersonalInformation,
+    sections: initialSections,
+    themeSettings: initialThemeSettings,
+    exportConfigurations: initialExportConfigurations,
   },
-  personalInformation: {
-    firstName: "Atul",
-    lastName: "Sharma",
-    fullName: "Atul Sharma",
-    headline: "Senior Frontend Engineer",
-    email: "atul@example.com",
-    phone: "+91XXXXXXXXXX",
-    location: {
-      city: "Noida",
-      state: "Uttar Pradesh",
-      country: "India",
-    },
-    profilePhoto: "",
-    summary: "Experienced frontend engineer specializing in scalable web applications.",
-    socialLinks: {
-      portfolio: "",
-      linkedin: "",
-      github: "",
-      twitter: "",
-      behance: "",
-      dribbble: "",
-      medium: "",
-      youtube: "",
-    },
-  },
+  personalInformation: initialPersonalInformation,
   sections: initialSections,
-  themeSettings: {
-    fontFamily: "Inter",
-    fontSize: 14,
-    lineHeight: 1.5,
-    primaryColor: "#111111",
-    secondaryColor: "#666666",
-    backgroundColor: "#FFFFFF",
-    layout: "single-column",
-    spacing: {
-      sectionGap: 24,
-      itemGap: 12,
-      pagePadding: 32,
-    },
-    showIcons: true,
-    showProfilePhoto: false,
-    pageFormat: "A4",
-  },
-  exportConfigurations: {
-    allowPdfExport: true,
-    allowDocxExport: true,
-    allowPublicSharing: true,
-    publicResumeUrl: "",
-    pdfSettings: {
-      pageSize: "A4",
-      margin: 24,
-      scale: 1,
-    },
-    privacy: {
-      hideEmail: false,
-      hidePhone: false,
-      hideLocation: false,
-    },
-  },
+  themeSettings: initialThemeSettings,
+  exportConfigurations: initialExportConfigurations,
 };
 
 export const useResumeBuilder = () => {
@@ -284,10 +307,14 @@ export const useResumeBuilder = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [isEditorLoading, setIsEditorLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [previewResume, setPreviewResume] = useState<Resume | null>(null);
 
   const sectionSummary = useMemo(
-    () => resume.sections.map((section) => `${section.title} (${section.items.length})`),
-    [resume.sections],
+    () => resume.metadata.sections.map((section) => `${section.title} (${section.items.length})`),
+    [resume.metadata.sections],
   );
 
   const updateMetadata = useCallback((key: keyof Resume["metadata"], value: string | boolean | number | string[]) => {
@@ -303,35 +330,53 @@ export const useResumeBuilder = () => {
 
   const updatePersonalInformation = useCallback(
     (key: keyof Resume["personalInformation"], value: string) => {
-      setResume((current) => ({
-        ...current,
-        personalInformation: {
-          ...current.personalInformation,
+      setResume((current) => {
+        const currentPersonalInformation = current.metadata.personalInformation;
+        const nextPersonalInformation = {
+          ...currentPersonalInformation,
           [key]: value,
           ...(key === "firstName" || key === "lastName"
             ? {
-                fullName: `${key === "firstName" ? value : current.personalInformation.firstName} ${
-                  key === "lastName" ? value : current.personalInformation.lastName
+                fullName: `${key === "firstName" ? value : currentPersonalInformation.firstName} ${
+                  key === "lastName" ? value : currentPersonalInformation.lastName
                 }`.trim(),
               }
             : {}),
-        },
-      }));
+        };
+
+        return {
+          ...current,
+          metadata: {
+            ...current.metadata,
+            personalInformation: nextPersonalInformation,
+          },
+          personalInformation: nextPersonalInformation,
+        };
+      });
     },
     [],
   );
 
   const updateLocation = useCallback((key: string, value: string) => {
-    setResume((current) => ({
-      ...current,
-      personalInformation: {
-        ...current.personalInformation,
+    setResume((current) => {
+      const currentPersonalInformation = current.metadata.personalInformation;
+      const nextPersonalInformation = {
+        ...currentPersonalInformation,
         location: {
-          ...current.personalInformation.location,
+          ...currentPersonalInformation.location,
           [key]: value,
         },
-      },
-    }));
+      };
+
+      return {
+        ...current,
+        metadata: {
+          ...current.metadata,
+          personalInformation: nextPersonalInformation,
+        },
+        personalInformation: nextPersonalInformation,
+      };
+    });
   }, []);
 
   const updateTags = useCallback((event: ChangeEvent<HTMLInputElement>) => {
@@ -345,18 +390,25 @@ export const useResumeBuilder = () => {
   }, [updateMetadata]);
 
   const toggleSection = useCallback((sectionId: string) => {
-    setResume((current) => ({
-      ...current,
-      sections: current.sections.map((section) =>
+    setResume((current) => {
+      const nextSections = current.metadata.sections.map((section) =>
         section.id === sectionId ? { ...section, isVisible: !section.isVisible } : section,
-      ),
-    }));
+      );
+
+      return {
+        ...current,
+        metadata: {
+          ...current.metadata,
+          sections: nextSections,
+        },
+        sections: nextSections,
+      };
+    });
   }, []);
 
   const updateSectionItemContent = useCallback((sectionId: string, key: string, value: unknown) => {
-    setResume((current) => ({
-      ...current,
-      sections: current.sections.map((section) => {
+    setResume((current) => {
+      const nextSections = current.metadata.sections.map((section) => {
         if (section.id !== sectionId) {
           return section;
         }
@@ -367,8 +419,17 @@ export const useResumeBuilder = () => {
             index === 0 ? { ...item, content: { ...item.content, [key]: value } } : item,
           ),
         };
-      }),
-    }));
+      });
+
+      return {
+        ...current,
+        metadata: {
+          ...current.metadata,
+          sections: nextSections,
+        },
+        sections: nextSections,
+      };
+    });
   }, []);
 
   const fetchResumes = useCallback(async () => {
@@ -404,15 +465,107 @@ export const useResumeBuilder = () => {
     );
   }, []);
 
-  const saveResume = useCallback(async () => {
+  const openResumePreview = useCallback(async (resumeId: string) => {
+    setIsPreviewLoading(true);
+    setError("");
+
+    try {
+      const response = await getResume(resumeId);
+      setPreviewResume(response.resume);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error loading resume preview.");
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  }, []);
+
+  const closeResumePreview = useCallback(() => {
+    setPreviewResume(null);
+  }, []);
+
+  const loadResumeForEditing = useCallback(async (resumeId: string) => {
+    setIsEditorLoading(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      const response = await getResume(resumeId);
+      setResume(response.resume);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error loading resume.");
+    } finally {
+      setIsEditorLoading(false);
+    }
+  }, []);
+
+  const patchSavedResume = useCallback(async (resumeToUpdate: Resume) => {
+    if (!resumeToUpdate.id) {
+      return;
+    }
+
     setIsSaving(true);
     setError("");
     setSuccessMessage("");
 
     try {
-      const response = await createResume(resume);
-      setSuccessMessage("Resume saved successfully.");
-      setSavedResumes((current) => [response, ...current]);
+      const response = await updateResume(resumeToUpdate.id, resumeToUpdate);
+      setSuccessMessage("Resume updated successfully.");
+      setPreviewResume(response.resume);
+      setSavedResumes((current) =>
+        current.map((item) =>
+          item.resume.id === response.resume.id ? response : item,
+        ),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error updating resume.");
+    } finally {
+      setIsSaving(false);
+    }
+  }, []);
+
+  const removeSavedResume = useCallback(async (resumeId: string) => {
+    setIsDeleting(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      await deleteResume(resumeId);
+      setSuccessMessage("Resume deleted successfully.");
+      setPreviewResume((current) => (current?.id === resumeId ? null : current));
+      setSavedResumes((current) => current.filter((item) => item.resume.id !== resumeId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error deleting resume.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }, []);
+
+  const saveResume = useCallback(async () => {
+    setIsSaving(true);
+    setError("");
+    setSuccessMessage("");
+    console.log(resume,"resumeresumeresume")
+    try {
+      const response = resume.id
+        ? await updateResume(resume.id, resume)
+        : await createResume(resume);
+      setSuccessMessage(resume.id ? "Resume updated successfully." : "Resume saved successfully.");
+      setResume(response.resume);
+      setSavedResumes((current) => {
+        if (!response.resume.id) {
+          return [response, ...current];
+        }
+
+        const existingIndex = current.findIndex((item) => item.resume.id === response.resume.id);
+
+        if (existingIndex === -1) {
+          return [response, ...current];
+        }
+
+        return current.map((item) =>
+          item.resume.id === response.resume.id ? response : item,
+        );
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error saving resume.");
     } finally {
@@ -432,7 +585,11 @@ export const useResumeBuilder = () => {
   return {
     error,
     isFetching,
+    isDeleting,
+    isEditorLoading,
+    isPreviewLoading,
     isSaving,
+    previewResume,
     resume,
     savedResumes,
     sectionSummary,
@@ -440,6 +597,11 @@ export const useResumeBuilder = () => {
     fetchResumes,
     handleSubmit,
     saveResume,
+    closeResumePreview,
+    loadResumeForEditing,
+    openResumePreview,
+    patchSavedResume,
+    removeSavedResume,
     setActiveSavedResume,
     toggleSection,
     updateLocation,

@@ -42,17 +42,29 @@ const normalizeResumeResponse = (response: ResumeApiResponse): ResumeResponse | 
   }
 
   const resumeSource = isRecord(response.resume) ? response.resume : response;
-  const metadataSource = isRecord(resumeSource.metadata) ? resumeSource.metadata : {};
+  const metadataSource = isRecord(resumeSource.resumeJson)
+    ? resumeSource.resumeJson
+    : isRecord(resumeSource.metadata)
+      ? resumeSource.metadata
+      : {};
   const userSource = isRecord(resumeSource.user) ? resumeSource.user : {};
-  const personalSource = isRecord(resumeSource.personalInformation)
-    ? resumeSource.personalInformation
-    : {};
+  const personalSource = isRecord(metadataSource.personalInformation)
+    ? metadataSource.personalInformation
+    : isRecord(resumeSource.personalInformation)
+      ? resumeSource.personalInformation
+      : {};
   const locationSource = isRecord(personalSource.location) ? personalSource.location : {};
-  const themeSource = isRecord(resumeSource.themeSettings) ? resumeSource.themeSettings : {};
+  const themeSource = isRecord(metadataSource.themeSettings)
+    ? metadataSource.themeSettings
+    : isRecord(resumeSource.themeSettings)
+      ? resumeSource.themeSettings
+      : {};
   const spacingSource = isRecord(themeSource.spacing) ? themeSource.spacing : {};
-  const exportSource = isRecord(resumeSource.exportConfigurations)
-    ? resumeSource.exportConfigurations
-    : {};
+  const exportSource = isRecord(metadataSource.exportConfigurations)
+    ? metadataSource.exportConfigurations
+    : isRecord(resumeSource.exportConfigurations)
+      ? resumeSource.exportConfigurations
+      : {};
   const pdfSource = isRecord(exportSource.pdfSettings) ? exportSource.pdfSettings : {};
   const privacySource = isRecord(exportSource.privacy) ? exportSource.privacy : {};
   const title =
@@ -63,7 +75,11 @@ const normalizeResumeResponse = (response: ResumeApiResponse): ResumeResponse | 
     getString(metadataSource, "slug") ||
     getString(resumeSource, "slug") ||
     makeSlug(title);
-  const sections = Array.isArray(resumeSource.sections) ? resumeSource.sections : [];
+  const sections = Array.isArray(metadataSource.sections)
+    ? metadataSource.sections
+    : Array.isArray(resumeSource.sections)
+      ? resumeSource.sections
+      : [];
 
   return {
     resume: {
@@ -104,6 +120,64 @@ const normalizeResumeResponse = (response: ResumeApiResponse): ResumeResponse | 
           : getStringArray(resumeSource, "tags"),
         createdAt: getString(metadataSource, "createdAt") || getString(resumeSource, "createdAt") || undefined,
         updatedAt: getString(metadataSource, "updatedAt") || getString(resumeSource, "updatedAt") || undefined,
+        personalInformation: {
+          firstName: getString(personalSource, "firstName"),
+          lastName: getString(personalSource, "lastName"),
+          fullName: getString(personalSource, "fullName") || getString(userSource, "name") || "Untitled Candidate",
+          headline: getString(personalSource, "headline"),
+          email: getString(personalSource, "email") || getString(userSource, "email"),
+          phone: getString(personalSource, "phone"),
+          location: {
+            city: getString(locationSource, "city"),
+            state: getString(locationSource, "state"),
+            country: getString(locationSource, "country"),
+            remote: getBoolean(locationSource, "remote"),
+          },
+          profilePhoto: getString(personalSource, "profilePhoto"),
+          summary: getString(personalSource, "summary"),
+          socialLinks: isRecord(personalSource.socialLinks)
+            ? Object.fromEntries(
+                Object.entries(personalSource.socialLinks).map(([key, value]) => [
+                  key,
+                  typeof value === "string" ? value : "",
+                ]),
+              )
+            : {},
+        },
+        sections: sections as Resume["sections"],
+        themeSettings: {
+          fontFamily: getString(themeSource, "fontFamily", "Inter"),
+          fontSize: getNumber(themeSource, "fontSize", 14),
+          lineHeight: getNumber(themeSource, "lineHeight", 1.5),
+          primaryColor: getString(themeSource, "primaryColor", "#111111"),
+          secondaryColor: getString(themeSource, "secondaryColor", "#666666"),
+          backgroundColor: getString(themeSource, "backgroundColor", "#FFFFFF"),
+          layout: getString(themeSource, "layout", "single-column"),
+          spacing: {
+            sectionGap: getNumber(spacingSource, "sectionGap", 24),
+            itemGap: getNumber(spacingSource, "itemGap", 12),
+            pagePadding: getNumber(spacingSource, "pagePadding", 32),
+          },
+          showIcons: getBoolean(themeSource, "showIcons", true),
+          showProfilePhoto: getBoolean(themeSource, "showProfilePhoto"),
+          pageFormat: getString(themeSource, "pageFormat", "A4"),
+        },
+        exportConfigurations: {
+          allowPdfExport: getBoolean(exportSource, "allowPdfExport", true),
+          allowDocxExport: getBoolean(exportSource, "allowDocxExport", true),
+          allowPublicSharing: getBoolean(exportSource, "allowPublicSharing", true),
+          publicResumeUrl: getString(exportSource, "publicResumeUrl"),
+          pdfSettings: {
+            pageSize: getString(pdfSource, "pageSize", "A4"),
+            margin: getNumber(pdfSource, "margin", 24),
+            scale: getNumber(pdfSource, "scale", 1),
+          },
+          privacy: {
+            hideEmail: getBoolean(privacySource, "hideEmail"),
+            hidePhone: getBoolean(privacySource, "hidePhone"),
+            hideLocation: getBoolean(privacySource, "hideLocation"),
+          },
+        },
       },
       personalInformation: {
         firstName: getString(personalSource, "firstName"),
@@ -199,7 +273,15 @@ const ensureResume = (response: ResumeApiResponse): ResumeResponse => {
 
 export const createResume = async (resume: Resume) => {
   const { metadata } = resume;
-  const payload = {
+  const payload = buildResumePayload(resume);
+
+  const response = (await api.post("resumes", payload)) as ResumeApiResponse;
+  return ensureResume(response);
+};
+
+const buildResumePayload = (resume: Resume) => {
+  const { metadata } = resume;
+  const resumeJson = {
     title: metadata.title,
     slug: metadata.slug,
     domain: metadata.domain,
@@ -211,20 +293,39 @@ export const createResume = async (resume: Resume) => {
     version: metadata.version,
     isPrimary: metadata.isPrimary,
     tags: metadata.tags,
-    metadata,
-    personalInformation: resume.personalInformation,
-    sections: resume.sections,
-    themeSettings: resume.themeSettings,
-    exportConfigurations: resume.exportConfigurations,
+    createdAt: metadata.createdAt,
+    updatedAt: metadata.updatedAt,
+    personalInformation: metadata.personalInformation,
+    sections: metadata.sections,
+    themeSettings: metadata.themeSettings,
+    exportConfigurations: metadata.exportConfigurations,
   };
 
-  const response = (await api.post("resumes", payload)) as ResumeApiResponse;
+  return {
+    title: metadata.title,
+    slug: metadata.slug,
+    domain: metadata.domain,
+    templateId: metadata.templateId,
+    status: metadata.status,
+    visibility: metadata.visibility,
+    themeSettings: metadata.themeSettings,
+    resumeJson,
+    changeSummary: resume.id ? "Updated resume details." : "Created resume draft.",
+  };
+};
+
+export const updateResume = async (id: string, resume: Resume) => {
+  const response = (await api.patch(`resumes/${id}`, buildResumePayload(resume))) as ResumeApiResponse;
   return ensureResume(response);
 };
 
 export const getResume = async (id: string) => {
   const response = (await api.get(`resumes/${id}`)) as ResumeApiResponse;
   return ensureResume(response);
+};
+
+export const deleteResume = async (id: string) => {
+  return api.del(`resumes/${id}`) as Promise<{ message?: string } | null>;
 };
 
 export type SaveResumePayload = Resume;

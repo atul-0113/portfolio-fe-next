@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
 import { useResumeBuilder } from "@/hooks/useResumeBuilder";
@@ -586,7 +586,9 @@ const EditModal = ({
 const ResumeBuilder = () => {
   const {
     error,
+    isEditorLoading,
     isSaving,
+    loadResumeForEditing,
     resume,
     saveResume,
     successMessage,
@@ -599,6 +601,7 @@ const ResumeBuilder = () => {
   } = useResumeBuilder();
   const router = useRouter();
   const [activeStepIndex, setActiveStepIndex] = useState<number | null>(null);
+  const isEditing = Boolean(resume.id);
 
   const steps = useMemo<BuilderStep[]>(
     () => [
@@ -631,12 +634,23 @@ const ResumeBuilder = () => {
       return (current + direction + steps.length) % steps.length;
     });
   };
+
+  useEffect(() => {
+    const resumeId = new URLSearchParams(window.location.search).get("id");
+
+    if (resumeId) {
+      loadResumeForEditing(resumeId);
+    }
+  }, [loadResumeForEditing]);
+
   return (
     <DefaultLayout>
       <section className={cx(layoutStyles.page, "max-w-[1320px]")}>
         <div className={layoutStyles.sectionHeader}>
           <div className="max-w-[760px]">
-            <h1 className={typographyStyles.pageTitleLarge}>Resume Builder</h1>
+            <h1 className={typographyStyles.pageTitleLarge}>
+              {isEditing ? "Edit Resume" : "Resume Builder"}
+            </h1>
             <p className={`mt-2 ${typographyStyles.bodyLarge}`}>
               Hover on any resume area to edit it in a guided step modal.
             </p>
@@ -661,7 +675,7 @@ const ResumeBuilder = () => {
               className={componentStyles.buttonPrimary}
             >
               <FiSave size={18} />
-              {isSaving ? "Saving" : "Save Resume"}
+              {isSaving ? "Saving" : isEditing ? "Update Resume" : "Save Resume"}
             </button>
           </div>
         </div>
@@ -676,6 +690,12 @@ const ResumeBuilder = () => {
           <div className="mb-6 flex items-center gap-2 rounded-lg border border-[#0b7a2a] bg-[#dff8e7] px-4 py-3 text-sm font-medium text-[#0b7a2a]">
             <FiCheckCircle size={18} />
             {successMessage}
+          </div>
+        )}
+
+        {isEditorLoading && (
+          <div className={`mb-6 rounded-lg border ${colorClasses.border} bg-white px-5 py-4 text-sm ${colorClasses.textMuted}`}>
+            Loading resume details...
           </div>
         )}
 
