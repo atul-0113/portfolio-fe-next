@@ -1,64 +1,125 @@
 "use client";
 
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
-import { useTemplates } from "@/hooks/useTemplates";
+import Pagination from "@/components/Pagination";
+import { useTemplateLibrary } from "@/hooks/useTemplates";
+import { badgeColorClasses, colorClasses } from "@/styles/theme";
+import { componentStyles, layoutStyles, typographyStyles } from "@/styles/ui";
+import Image from "next/image";
+import { FiEdit3, FiPlus, FiPlusCircle } from "react-icons/fi";
 
 const Templates = () => {
-  const { templates, error, isLoading } = useTemplates();
+  const { error, filters, isLoading, paginationPages, resultSummary, templateItems } = useTemplateLibrary();
 
   return (
     <DefaultLayout>
-      <div className="mx-auto">
-        <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Templates</h1>
+      <section className={layoutStyles.page}>
+        <div className={layoutStyles.sectionHeader}>
+          <div>
+            <h1 className={typographyStyles.pageTitleLarge}>
+              Template Library
+            </h1>
+            <p className={`mt-2 ${typographyStyles.bodyLarge}`}>
+              Choose a starting point or build a custom layout for your next professional showcase.
+            </p>
+          </div>
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-md bg-graydark px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+            className={`${componentStyles.buttonPrimary} shrink-0`}
           >
-            Add Template
+            <FiPlus size={18} />
+            Create Template
           </button>
         </div>
 
+        <div className="mb-12 flex flex-wrap gap-3">
+          {filters.map((filter, index) => (
+            <button
+              key={filter}
+              type="button"
+              className={`h-10 min-w-[132px] rounded-full border px-6 text-sm transition ${
+                index === 0
+                  ? `border-[#2400d8] ${colorClasses.appBackground} ${colorClasses.primaryAccentText}`
+                  : `${colorClasses.border} ${colorClasses.appBackground} ${colorClasses.textMuted} ${colorClasses.hoverBorder} ${colorClasses.hoverText}`
+              }`}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
+
         {error && (
-          <div className="mb-4 rounded-md border border-red bg-red/10 px-4 py-3 text-sm text-red">
+          <div className="mb-6 rounded-lg border border-red bg-red/10 px-4 py-3 text-sm text-red">
             {error}
           </div>
         )}
 
-        {isLoading && <p className="mb-4 text-sm">Loading templates...</p>}
+        {isLoading && (
+          <div className={`mb-6 rounded-lg border ${colorClasses.border} bg-white px-5 py-4 text-sm ${colorClasses.textMuted}`}>
+            Loading templates...
+          </div>
+        )}
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {templates.map((template) => (
+        <div className={layoutStyles.gridCards}>
+          {templateItems.map((template) => (
             <article
               key={template.id}
-              className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark"
+              className={`overflow-hidden ${componentStyles.card}`}
             >
-              <div className="mb-4 flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-black dark:text-white">
-                    {template.templateName}
-                  </h2>
-                  <p className="mt-1 text-sm">Category: {template.categoryType}</p>
-                </div>
-                <span
-                  className={`rounded px-2 py-1 text-xs font-medium ${
-                    template.isActive ? "bg-green-100 text-green-700" : "bg-red/10 text-red"
-                  }`}
-                >
-                  {template.isActive ? "Active" : "Inactive"}
-                </span>
+              <div className={`relative h-[245px] ${colorClasses.surfaceSubtle}`}>
+                <Image
+                  src={template.imageSrc}
+                  alt={template.name}
+                  fill
+                  sizes="(min-width: 1280px) 350px, (min-width: 768px) 50vw, 100vw"
+                  className="object-cover"
+                />
               </div>
-              <pre className="max-h-48 overflow-auto rounded bg-gray p-3 text-xs dark:bg-meta-4">
-                {template.code || "No template code available."}
-              </pre>
+
+              <div className="px-8 py-7">
+                <div className="mb-9 flex items-start justify-between gap-4">
+                  <h2 className={typographyStyles.cardTitleLarge}>
+                    {template.name}
+                  </h2>
+                  <span className={`shrink-0 rounded px-4 py-2 text-sm ${badgeColorClasses.neutral}`}>
+                    {template.category}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm ${colorClasses.textMuted}`}>{template.usage}</span>
+                  <button
+                    type="button"
+                    className={`inline-flex items-center gap-2 text-base font-semibold ${colorClasses.primaryAccentText}`}
+                  >
+                    <FiEdit3 size={18} />
+                    Edit
+                  </button>
+                </div>
+              </div>
             </article>
           ))}
+
+          <button
+            type="button"
+            className={`flex min-h-[380px] flex-col items-center justify-center rounded-lg border-2 border-dashed ${colorClasses.border} bg-white px-10 text-center transition ${colorClasses.hoverBorder}`}
+          >
+            <span className={`mb-7 flex h-20 w-20 items-center justify-center rounded-xl ${colorClasses.surfaceSubtle} ${colorClasses.primaryAccentText}`}>
+              <FiPlusCircle size={36} />
+            </span>
+            <span className={`text-[22px] font-bold ${colorClasses.textStrong}`}>Create New</span>
+            <span className={`mt-3 max-w-[245px] text-base leading-6 ${colorClasses.textMuted}`}>
+              Start with a blank canvas and build your own custom theme.
+            </span>
+          </button>
         </div>
 
-        {!isLoading && templates.length === 0 && !error && (
-          <p className="mt-8 text-center text-sm">No templates found.</p>
-        )}
-      </div>
+        <Pagination
+          summary={resultSummary}
+          pages={paginationPages}
+          variant="grid"
+        />
+      </section>
     </DefaultLayout>
   );
 };

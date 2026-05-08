@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
-import SidebarLinkGroup from "./SidebarLinkGroup";
-import { IoIosArrowDown } from "react-icons/io";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useRef } from "react";
+import { FiLogOut } from "react-icons/fi";
 import { AdminRoutes } from "@/routes";
 import { RouteTypes } from "@/types/routesTypes";
 import { useAuth } from "@/app/auth/AuthContext";
+import { colorClasses } from "@/styles/theme";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -17,34 +17,39 @@ interface SidebarProps {
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const pathname = usePathname();
+  const trigger = useRef<HTMLButtonElement | null>(null);
+  const sidebar = useRef<HTMLElement | null>(null);
+  const { signOut, user } = useAuth();
 
-  const trigger = useRef<any>(null);
-  const sidebar = useRef<any>(null);
-
-  let storedSidebarExpanded = "true";
-
-  const [sidebarExpanded, setSidebarExpanded] = useState(
-    storedSidebarExpanded === null ? false : storedSidebarExpanded === "true",
+  const filteredRoutes = useMemo(
+    () =>
+      AdminRoutes.filter((route) => {
+        if (route.requiredRoles.length === 0) return true;
+        return user && route.requiredRoles.includes(user.role);
+      }),
+    [user],
   );
-  const { user } = useAuth();
 
-  // close on click outside
+  const displayName = user?.role === "ADMIN" ? "Admin User" : user?.name || "Alex Rivera";
+  const email = user?.email || (user?.role === "ADMIN" ? "Pro Plan Admin" : "alex@portfolio.pro");
+  const accountLabel = user?.role === "ADMIN" ? "ADMIN CONSOLE" : "Pro Plan";
+
   useEffect(() => {
     const clickHandler = ({ target }: MouseEvent) => {
       if (!sidebar.current || !trigger.current) return;
       if (
         !sidebarOpen ||
-        sidebar.current.contains(target) ||
-        trigger.current.contains(target)
-      )
+        sidebar.current.contains(target as Node) ||
+        trigger.current.contains(target as Node)
+      ) {
         return;
+      }
       setSidebarOpen(false);
     };
     document.addEventListener("click", clickHandler);
     return () => document.removeEventListener("click", clickHandler);
-  });
+  }, [setSidebarOpen, sidebarOpen]);
 
-  // close if the esc key is pressed
   useEffect(() => {
     const keyHandler = ({ key }: KeyboardEvent) => {
       if (!sidebarOpen || key !== "Escape") return;
@@ -52,169 +57,95 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     };
     document.addEventListener("keydown", keyHandler);
     return () => document.removeEventListener("keydown", keyHandler);
-  });
-
-  useEffect(() => {
-    localStorage.setItem("sidebar-expanded", sidebarExpanded.toString());
-    if (sidebarExpanded) {
-      document.querySelector("body")?.classList.add("sidebar-expanded");
-    } else {
-      document.querySelector("body")?.classList.remove("sidebar-expanded");
-    }
-  }, [sidebarExpanded]);
-  const filteredRoutes = AdminRoutes.filter((route) => {
-    if (route.requiredRoles.length === 0) return true;
-    return user && route.requiredRoles.includes(user.role);
-  });
+  }, [setSidebarOpen, sidebarOpen]);
 
   return (
     <aside
       ref={sidebar}
-      className={`absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${
+      className={`fixed inset-y-0 left-0 z-9999 flex h-screen w-64 shrink-0 flex-col overflow-hidden border-r ${colorClasses.border} ${colorClasses.surfaceLow} transition-transform duration-200 lg:static lg:translate-x-0 ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
-      {/* <!-- SIDEBAR HEADER --> */}
-      <div className="flex items-center justify-between gap-2 px-6 py-5.5 lg:py-6.5">
-        <Link href="/">
-          <Image
-            width={176}
-            height={32}
-            src={"/images/logo/logo.svg"}
-            alt="Logo"
-            priority
-          />
+      <div className="shrink-0 flex items-start justify-between px-6 py-6">
+        <Link href="/dashboard">
+          <span className={`block text-xl font-semibold ${colorClasses.primaryText}`}>PortfolioPro</span>
+          <span className={`mt-1 block text-xs font-medium uppercase tracking-[0.08em] ${colorClasses.text}`}>
+            {accountLabel}
+          </span>
         </Link>
 
         <button
           ref={trigger}
+          type="button"
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          aria-controls="sidebar"
-          aria-expanded={sidebarOpen}
-          className="block lg:hidden"
+          className={`rounded border ${colorClasses.border} px-2 py-1 ${colorClasses.text} lg:hidden`}
+          aria-label="Close sidebar"
         >
-          <svg
-            className="fill-current"
-            width="20"
-            height="18"
-            viewBox="0 0 20 18"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M19 8.175H2.98748L9.36248 1.6875C9.69998 1.35 9.69998 0.825 9.36248 0.4875C9.02498 0.15 8.49998 0.15 8.16248 0.4875L0.399976 8.3625C0.0624756 8.7 0.0624756 9.225 0.399976 9.5625L8.16248 17.4375C8.31248 17.5875 8.53748 17.7 8.76248 17.7C8.98748 17.7 9.17498 17.625 9.36248 17.475C9.69998 17.1375 9.69998 16.6125 9.36248 16.275L3.02498 9.8625H19C19.45 9.8625 19.825 9.4875 19.825 9.0375C19.825 8.55 19.45 8.175 19 8.175Z"
-              fill=""
-            />
-          </svg>
+          x
         </button>
       </div>
-      {/* <!-- SIDEBAR HEADER --> */}
 
-      <div className="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
-        {/* <!-- Sidebar Menu --> */}
-        <nav className="mt-5 px-4 py-4 lg:mt-9 lg:px-6">
-          {/* <!-- Menu Group --> */}
-          <div>
-            {filteredRoutes.map((item: RouteTypes, index: number) => {
-              return (
-                <React.Fragment key={item.routeName || index}>
-                  {item.menuHeading && (
-                    <h3
-                      className="mb-4 ml-4 text-sm font-semibold text-bodydark2"
-                    >
-                      {item.menuHeading}
-                    </h3>
-                  )}
-                  {
-                    <ul className="mb-2 flex flex-col gap-1.5">
-                      {item?.subMenuNames?.length > 0 ? (
-                        <>
-                          <SidebarLinkGroup
-                            activeCondition={
-                              pathname === "/" ||
-                              pathname.includes(item?.menuName)
-                            }
-                          >
-                            {(handleClick, open) => {
-                              return (
-                                <React.Fragment>
-                                  <Link
-                                    href="#"
-                                    className={`group relative flex items-center gap-2.5 rounded-sm px-4 py-2 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                                      pathname.includes(item?.menuName) &&
-                                      "bg-graydark dark:bg-meta-4"
-                                    }`}
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      sidebarExpanded
-                                        ? handleClick()
-                                        : setSidebarExpanded(true);
-                                    }}
-                                  >
-                                    {/* <RxDashboard /> */}
-                                    {item?.icon}
-                                    {item?.menuName}
-                                    <IoIosArrowDown
-                                      className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current ${
-                                        open && "rotate-180"
-                                      }`}
-                                    />
-                                  </Link>
-                                  <div
-                                    className={`translate transform overflow-hidden ${
-                                      !open && "hidden"
-                                    }`}
-                                  >
-                                    <ul className="mb-5.5 mt-4 flex flex-col gap-2.5 pl-6">
-                                      {item?.subMenuNames.map(
-                                        (subMenu: any, index: number) => {
-                                          return (
-                                            <li key={subMenu?.routeName || index}>
-                                              <Link
-                                                href={subMenu?.routeName}
-                                                className={`group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
-                                                  pathname ===
-                                                    subMenu?.routeName &&
-                                                  "text-white"
-                                                }`}
-                                              >
-                                                {subMenu?.icon}
-                                                {subMenu?.menuName}
-                                              </Link>
-                                            </li>
-                                          );
-                                        },
-                                      )}
-                                    </ul>
-                                  </div>
-                                  {/* <!-- Dropdown Menu End --> */}
-                                </React.Fragment>
-                              );
-                            }}
-                          </SidebarLinkGroup>
-                          {/* <!-- Menu Item Dashboard --> */}
-                        </>
-                      ) : (
-                        <li className="gap-0">
-                          <Link
-                            href={item?.routeName}
-                            className={`group relative flex items-center gap-2.5 rounded-sm px-4 py-2 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                              pathname === item?.routeName &&
-                              "bg-graydark dark:bg-meta-4"
-                            }`}
-                          >
-                            {item.icon}
-                            {item?.menuName}
-                          </Link>
-                        </li>
-                      )}
-                    </ul>
-                  }
-                </React.Fragment>
-              );
-            })}
+      <nav className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        {filteredRoutes.map((item: RouteTypes, index: number) => {
+          const isActive = pathname === item.routeName && item.menuName === "Dashboard";
+          const routeActive = pathname === item.routeName && item.menuName !== "Dashboard";
+
+          return (
+            <div key={`${item.menuName}-${index}`}>
+              {item.menuHeading && (
+                <h3 className={`mb-3 mt-6 px-4 text-[11px] font-semibold uppercase tracking-[0.16em] ${colorClasses.textSubtle} first:mt-0`}>
+                  {item.menuHeading}
+                </h3>
+              )}
+              <Link
+                href={item.routeName}
+                className={`mb-1.5 flex items-center gap-3 rounded-md px-4 py-2.5 text-sm transition ${
+                  isActive || routeActive
+                    ? `border-l-2 border-[#3525cd] ${colorClasses.surfaceSubtle} ${colorClasses.primaryText}`
+                    : `${colorClasses.textMuted} hover:bg-[#e7e8e9] hover:text-[#191c1d]`
+                }`}
+              >
+                {item.icon}
+                {item.menuName}
+              </Link>
+            </div>
+          );
+        })}
+      </nav>
+
+      <div className="shrink-0 px-4 pb-5">
+        <div className={`border-t ${colorClasses.border} pt-4`}>
+          <div className="flex items-center justify-between gap-3 px-2">
+            <div className="flex min-w-0 items-center gap-3">
+              {user?.role === "ADMIN" ? (
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${colorClasses.primaryBg} text-sm font-semibold text-white`}>
+                  JD
+                </div>
+              ) : (
+                <Image
+                  src="/images/user/user-01.png"
+                  alt={displayName}
+                  width={40}
+                  height={40}
+                  className="shrink-0 rounded-full"
+                />
+              )}
+              <div className="min-w-0">
+                <p className={`truncate text-sm font-semibold ${colorClasses.text}`}>{displayName}</p>
+                <p className={`truncate text-xs ${colorClasses.textMuted}`}>{email}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={signOut}
+              aria-label="Log out"
+              title="Log out"
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${colorClasses.textMuted} hover:bg-[#e7e8e9] hover:text-[#ba1a1a]`}
+            >
+              <FiLogOut size={18} />
+            </button>
           </div>
-        </nav>
+        </div>
       </div>
     </aside>
   );
