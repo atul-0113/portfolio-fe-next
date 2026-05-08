@@ -16,8 +16,8 @@ export default function DefaultLayout({
         <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-          <main className="flex-1 overflow-y-auto">
-            <div className={layoutStyles.pageShell}>
+          <main className="flex flex-1 flex-col overflow-y-auto">
+            <div className={`${layoutStyles.pageShell} flex-1`}>
               <div className={layoutStyles.pageWide}>
                 {children}
               </div>

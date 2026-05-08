@@ -90,3 +90,111 @@ export interface DashboardResponse {
   recentAdminActions?: DashboardAdminAction[];
   recentItems?: DashboardRecentItem[];
 }
+
+export type ResumeStatus = "draft" | "published" | "archived";
+export type ResumeVisibility = "private" | "public";
+
+export interface ResumeResponse {
+  resume: Resume;
+}
+
+export interface ResumeLocation {
+  city?: string;
+  state?: string;
+  country?: string;
+  remote?: boolean;
+}
+
+export interface ResumeMetric {
+  label: string;
+  value: string;
+}
+
+export interface Resume {
+  id?: string;
+  userId?: string;
+  workspaceId?: string;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  metadata: {
+    title: string;
+    slug: string;
+    domain: string;
+    templateId: string;
+    themeId: string;
+    language: string;
+    status: ResumeStatus;
+    visibility: ResumeVisibility;
+    version: number;
+    isPrimary: boolean;
+    tags: string[];
+    createdAt?: string;
+    updatedAt?: string;
+  };
+  personalInformation: {
+    firstName: string;
+    lastName: string;
+    fullName: string;
+    headline: string;
+    email: string;
+    phone: string;
+    location: ResumeLocation;
+    profilePhoto: string;
+    summary: string;
+    socialLinks: Record<string, string>;
+  };
+  sections: ResumeSection[];
+  themeSettings: {
+    fontFamily: string;
+    fontSize: number;
+    lineHeight: number;
+    primaryColor: string;
+    secondaryColor: string;
+    backgroundColor: string;
+    layout: string;
+    spacing: {
+      sectionGap: number;
+      itemGap: number;
+      pagePadding: number;
+    };
+    showIcons: boolean;
+    showProfilePhoto: boolean;
+    pageFormat: string;
+  };
+  exportConfigurations: {
+    allowPdfExport: boolean;
+    allowDocxExport: boolean;
+    allowPublicSharing: boolean;
+    publicResumeUrl: string;
+    pdfSettings: {
+      pageSize: string;
+      margin: number;
+      scale: number;
+    };
+    privacy: {
+      hideEmail: boolean;
+      hidePhone: boolean;
+      hideLocation: boolean;
+    };
+  };
+}
+
+export interface ResumeSection {
+  id: string;
+  type: string;
+  title: string;
+  position: number;
+  isVisible: boolean;
+  config: Record<string, unknown>;
+  items: ResumeSectionItem[];
+}
+
+export interface ResumeSectionItem {
+  id: string;
+  position: number;
+  isVisible: boolean;
+  content: Record<string, unknown>;
+}
