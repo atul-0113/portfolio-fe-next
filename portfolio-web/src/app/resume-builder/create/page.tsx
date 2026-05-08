@@ -112,9 +112,9 @@ const ResumeSectionView = ({
       <>
         <EditableBlock label={section.title} onEdit={onEdit}>
           <h2 className="mb-7 text-[18px] font-black leading-tight text-black">Education</h2>
-          <div className="flex items-start justify-between gap-8">
-            <div>
-              <h3 className="text-[22px] font-black text-[#707070]">
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+            <div className="min-w-0">
+              <h3 className="break-words text-[22px] font-black text-[#707070]">
                 {getString(content.institutionName) || "Graduated school"}
               </h3>
               <p className="mt-1 text-[16px] text-[#707070]">
@@ -122,7 +122,7 @@ const ResumeSectionView = ({
                 {getString(content.degree) || "Location"}
               </p>
             </div>
-            <p className="shrink-0 text-[16px] text-[#707070]">
+            <p className="text-[16px] text-[#707070] sm:text-right">
               {getString(content.endDate) || "Graduation Date"}
             </p>
           </div>
@@ -158,19 +158,19 @@ const ResumeSectionView = ({
         <h2 className="mb-7 text-[18px] font-black leading-tight text-black">Experience</h2>
         <div className="space-y-7">
           <div>
-            <div className="flex items-start justify-between gap-8">
-              <div>
-                <h3 className="text-[22px] font-black text-[#707070]">
+            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+              <div className="min-w-0">
+                <h3 className="break-words text-[22px] font-black text-[#707070]">
                   {getString(content.companyName) || "Company A"}
                 </h3>
                 <p className="mt-1 text-[16px] text-[#707070]">
                   {getString(content.jobTitle) || "Sales Representative"} ·{" "}
                   {typeof content.location === "object" && content.location
                     ? getString((content.location as { city?: string }).city) || "Location"
-                    : "Location"}
+                  : "Location"}
                 </p>
               </div>
-              <p className="shrink-0 text-[16px] text-[#707070]">
+              <p className="text-[16px] text-[#707070] sm:text-right">
                 {[getString(content.startDate), getString(content.endDate)].filter(Boolean).join(" - ") ||
                   "Start and end date"}
               </p>
@@ -700,11 +700,11 @@ const ResumeBuilder = () => {
         )}
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="overflow-x-auto rounded-lg bg-[#f3f4f5] px-4 py-8 shadow-inner">
-            <article className="mx-auto min-h-[1120px] w-[920px] bg-white px-[62px] py-[54px] text-black shadow-xl">
-              <div className="mb-14 flex items-start justify-between gap-12">
+          <div className="min-w-0 rounded-lg bg-[#f3f4f5] px-3 py-6 shadow-inner sm:px-5 lg:px-8">
+            <article className="mx-auto min-h-[980px] w-full max-w-[860px] bg-white px-6 py-8 text-black shadow-xl sm:px-9 sm:py-10 lg:px-12 lg:py-12">
+              <div className="mb-12 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(180px,42%)] lg:items-start">
                 <EditableBlock label="contact information" onEdit={() => setActiveStepIndex(0)}>
-                  <h2 className="text-[50px] font-black leading-none tracking-normal text-black">
+                  <h2 className="break-words text-[34px] font-black leading-none tracking-normal text-black sm:text-[42px] lg:text-[48px]">
                     {resume.personalInformation.fullName || "Atul Sharma"}
                   </h2>
                   <div className="mt-9 space-y-2 font-serif text-[19px] leading-7 text-[#6f6f6f]">
@@ -717,7 +717,7 @@ const ResumeBuilder = () => {
                     <p>{resume.personalInformation.phone || "Phone Number"}</p>
                   </div>
                 </EditableBlock>
-                <div className="mt-1 h-2 w-[540px] shrink-0 bg-black" />
+                <div className="h-2 w-full bg-black lg:mt-1" />
               </div>
 
               {resume.sections.map((section) => (
