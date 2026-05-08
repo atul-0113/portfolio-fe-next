@@ -3,29 +3,57 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  FiBarChart2,
   FiCloud,
   FiDatabase,
   FiServer,
 } from "react-icons/fi";
+import NoData from "@/components/NoData";
+import { DashboardAdminAction } from "@/types/api";
 
-const growthBars = [38, 52, 44, 66, 56, 80, 70, 90, 94];
+interface AdminDashboardProps {
+  dashboard?: {
+    totalUsers: string;
+    activeUsers: string;
+    adminUsers: string;
+    totalCategories: string;
+    activeCategories: string;
+    inactiveCategories: string;
+    totalTemplates: string;
+    activeTemplates: string;
+    activePortfolios: string;
+    resumesBuilt: string;
+    capacityUsed: number;
+    usersGrowth: string;
+    portfoliosToday: string;
+    growthBars: number[];
+    platformStatus: string;
+    apiInfrastructure: string;
+    aiTrainingCluster: string;
+    cdnDelivery: string;
+    recentAdminActions?: DashboardAdminAction[];
+  };
+}
 
-const healthRows = [
-  { label: "API Infrastructure", value: "12ms", icon: <FiServer size={22} /> },
-  { label: "AI Training Cluster", value: "94% load", danger: true, icon: <FiDatabase size={22} /> },
-  { label: "CDN Delivery", value: "100% up", icon: <FiCloud size={22} /> },
-];
+const AdminDashboard = ({ dashboard }: AdminDashboardProps) => {
+  const dashboardGrowthBars = dashboard?.growthBars ?? [];
+  const totalCategories = Number(dashboard?.totalCategories?.replace(/,/g, ""));
+  const activeCategories = Number(dashboard?.activeCategories?.replace(/,/g, ""));
+  const activeCategoryPercent =
+    Number.isFinite(totalCategories) && totalCategories > 0 && Number.isFinite(activeCategories)
+      ? (activeCategories / totalCategories) * 100
+      : 0;
+  const dashboardHealthRows = [
+    { label: "Active Users", value: dashboard?.activeUsers || "--", icon: <FiServer size={22} /> },
+    { label: "Admin Users", value: dashboard?.adminUsers || "--", icon: <FiDatabase size={22} /> },
+    {
+      label: "Inactive Categories",
+      value: dashboard?.inactiveCategories || "--",
+      danger: Number(dashboard?.inactiveCategories || 0) > 0,
+      icon: <FiCloud size={22} />,
+    },
+  ];
+  const dashboardAdminActions = dashboard?.recentAdminActions ?? [];
 
-const adminActions = [
-  { admin: "Marcus K.", initials: "MK", action: "Update Permissions", target: "User ID: 829-X", time: "2m ago" },
-  { admin: "Sarah L.", initials: "SL", action: "Flush Cache", target: "Global CDN", time: "14m ago" },
-  { admin: "Alex J.", initials: "AJ", action: "Ban Account", target: "User: SpamBot22", time: "32m ago", danger: true },
-  { admin: "Marcus K.", initials: "MK", action: "Modify Tier", target: "Enterprise #04", time: "1h ago" },
-  { admin: "Sarah L.", initials: "SL", action: "Deploy Build", target: "Production v4.2", time: "2h ago" },
-];
-
-const AdminDashboard = () => {
   return (
     <>
       <section className="mb-12">
@@ -44,37 +72,48 @@ const AdminDashboard = () => {
               <p className="text-sm font-medium uppercase tracking-[0.12em] text-[#191c1d]">
                 Total Users
               </p>
-              <p className="mt-2 text-4xl font-semibold text-[#191c1d]">124,592</p>
+              <p className="mt-2 text-4xl font-semibold text-[#191c1d]">{dashboard?.totalUsers || "--"}</p>
             </div>
             <span className="rounded bg-[#e2dfff] px-4 py-2 text-sm font-medium text-[#3525cd]">
-              ↗ +12%
+              Active {dashboard?.activeUsers || "--"}
             </span>
           </div>
-          <div className="flex h-44 items-end gap-2">
-            {growthBars.map((height, index) => (
-              <div
-                key={`${height}-${index}`}
-                className="flex-1 rounded-t bg-[#3525cd]"
-                style={{ height: `${height}%`, opacity: 0.18 + index * 0.09 }}
-              />
-            ))}
-          </div>
+          {dashboardGrowthBars.length ? (
+            <div className="flex h-44 items-end gap-2">
+              {dashboardGrowthBars.map((height, index) => (
+                <div
+                  key={`${height}-${index}`}
+                  className="flex-1 rounded-t bg-[#3525cd]"
+                  style={{ height: `${height}%`, opacity: 0.18 + index * 0.09 }}
+                />
+              ))}
+            </div>
+          ) : (
+            <NoData
+              className="min-h-44"
+              description="Analytics bars will appear when the dashboard API provides chart data."
+              title="No chart data"
+            />
+          )}
         </article>
 
         <article className="flex flex-col justify-between rounded-lg border border-[#c7c4d8] bg-white p-8">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.12em] text-[#191c1d]">
-              Active Portfolios
+              Categories
             </p>
-            <p className="mt-2 text-3xl font-semibold text-[#191c1d]">84,203</p>
+            <p className="mt-2 text-3xl font-semibold text-[#191c1d]">{dashboard?.totalCategories || "--"}</p>
           </div>
           <div>
             <div className="mb-3 flex justify-between text-sm text-[#191c1d]">
-              <span>Capacity Used</span>
-              <span>68%</span>
+              <span>Active</span>
+              <span>{dashboard?.activeCategories || "--"}</span>
             </div>
             <div className="h-2 rounded bg-[#e1e3e4]">
-              <div className="h-2 w-[68%] rounded bg-[#3525cd]" />
+              <div
+                className="h-2 rounded bg-[#3525cd]"
+                style={{ width: `${activeCategoryPercent}%` }}
+              />
             </div>
           </div>
         </article>
@@ -82,9 +121,9 @@ const AdminDashboard = () => {
         <article className="flex flex-col justify-between rounded-lg border border-[#c7c4d8] bg-white p-8">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.12em] text-[#191c1d]">
-              Resumes Built
+              Templates
             </p>
-            <p className="mt-2 text-3xl font-semibold text-[#191c1d]">312.4k</p>
+            <p className="mt-2 text-3xl font-semibold text-[#191c1d]">{dashboard?.totalTemplates || "--"}</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex -space-x-3">
@@ -92,7 +131,7 @@ const AdminDashboard = () => {
               <span className="h-9 w-9 rounded-lg bg-[#a44100]" />
               <span className="h-9 w-9 rounded-lg bg-[#4f46e5]" />
             </div>
-            <span className="text-sm text-[#464555]">+4k today</span>
+            <span className="text-sm text-[#464555]">{dashboard?.activeTemplates || "--"} active</span>
           </div>
         </article>
       </section>
@@ -103,11 +142,11 @@ const AdminDashboard = () => {
             <div className="mb-8 flex items-start justify-between">
               <h2 className="text-2xl font-semibold text-[#191c1d]">Platform Health</h2>
               <p className="max-w-28 text-sm font-medium text-[#3525cd]">
-                ● All systems nominal
+                ● {dashboard?.platformStatus || "--"}
               </p>
             </div>
             <div className="divide-y divide-[#c7c4d8]">
-              {healthRows.map((row) => (
+              {dashboardHealthRows.map((row) => (
                 <div key={row.label} className="flex items-center justify-between py-5">
                   <div className="flex items-center gap-4">
                     {row.icon}
@@ -155,34 +194,42 @@ const AdminDashboard = () => {
             <span>Timestamp</span>
           </div>
 
-          <div className="divide-y divide-[#c7c4d8]">
-            {adminActions.map((item, index) => (
-              <div
-                key={`${item.admin}-${item.action}-${index}`}
-                className="grid grid-cols-[0.8fr_0.8fr_1fr_0.5fr] items-center py-5"
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${
-                      item.danger ? "bg-[#ffdbcc]" : "bg-[#e2dfff]"
-                    }`}
-                  >
-                    {item.initials}
+          {dashboardAdminActions.length ? (
+            <div className="divide-y divide-[#c7c4d8]">
+              {dashboardAdminActions.map((item, index) => (
+                <div
+                  key={`${item.admin}-${item.action}-${index}`}
+                  className="grid grid-cols-[0.8fr_0.8fr_1fr_0.5fr] items-center py-5"
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${
+                        item.danger ? "bg-[#ffdbcc]" : "bg-[#e2dfff]"
+                      }`}
+                    >
+                      {item.initials || "--"}
+                    </span>
+                    <span className="text-base text-[#191c1d]">{item.admin || "--"}</span>
+                  </div>
+                  <span>
+                    <span className="rounded bg-[#e1e3e4] px-3 py-1 text-sm text-[#464555]">
+                      {item.action || "--"}
+                    </span>
                   </span>
-                  <span className="text-base text-[#191c1d]">{item.admin}</span>
+                  <span className={item.danger ? "text-[#ba1a1a]" : "text-[#191c1d]"}>
+                    {item.target || "--"}
+                  </span>
+                  <span className="text-sm text-[#464555]">{item.time || item.timestamp || "--"}</span>
                 </div>
-                <span>
-                  <span className="rounded bg-[#e1e3e4] px-3 py-1 text-sm text-[#464555]">
-                    {item.action}
-                  </span>
-                </span>
-                <span className={item.danger ? "text-[#ba1a1a]" : "text-[#191c1d]"}>
-                  {item.target}
-                </span>
-                <span className="text-sm text-[#464555]">{item.time}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <NoData
+              className="mt-6 min-h-52"
+              description="Admin activity will appear here when the dashboard API returns log data."
+              title="No admin actions"
+            />
+          )}
         </article>
       </section>
     </>

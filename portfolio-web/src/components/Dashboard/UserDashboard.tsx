@@ -10,6 +10,8 @@ import {
   FiZap,
 } from "react-icons/fi";
 import { useAuth } from "@/app/auth/AuthContext";
+import NoData from "@/components/NoData";
+import { DashboardRecentItem } from "@/types/api";
 
 const quickActions = [
   {
@@ -32,36 +34,23 @@ const quickActions = [
   },
 ];
 
-const bars = [42, 56, 49, 70, 63, 78, 86];
+interface UserDashboardProps {
+  dashboard?: {
+    portfolioInsights: string;
+    jobApplicationUpdates: string;
+    subscriptionLabel: string;
+    analyticsChange: string;
+    analyticsBars: number[];
+    recentItems?: DashboardRecentItem[];
+  };
+}
 
-const recentItems = [
-  {
-    name: "Product Design Portfolio 2024",
-    type: "Portfolio",
-    status: "LIVE",
-    edited: "2 hours ago",
-    image: "/images/product/product-01.png",
-  },
-  {
-    name: "Senior Engineer Resume",
-    type: "Resume",
-    status: "DRAFT",
-    edited: "Yesterday",
-    image: "",
-  },
-  {
-    name: "Freelance Showcase v2",
-    type: "Portfolio",
-    status: "LIVE",
-    edited: "3 days ago",
-    image: "/images/product/product-02.png",
-  },
-];
-
-const UserDashboard = () => {
+const UserDashboard = ({ dashboard }: UserDashboardProps) => {
   const { user } = useAuth();
   const displayName = user?.name || "Alex Rivera";
   const firstName = displayName.split(" ")[0] || "there";
+  const bars = dashboard?.analyticsBars ?? [];
+  const dashboardRecentItems = dashboard?.recentItems ?? [];
 
   return (
     <>
@@ -71,7 +60,8 @@ const UserDashboard = () => {
             Welcome back, {firstName}.
           </h1>
           <p className="mt-4 text-base text-[#464555]">
-            You have 3 new portfolio insights and 1 job application update today.
+            You have {dashboard?.portfolioInsights || "--"} new portfolio insights and{" "}
+            {dashboard?.jobApplicationUpdates || "--"} job application update today.
           </p>
         </div>
 
@@ -81,7 +71,7 @@ const UserDashboard = () => {
               Subscription
             </p>
             <p className="mt-1 text-xl font-semibold text-[#3525cd]">
-              Pro Plan - Active
+              {dashboard?.subscriptionLabel || "--"}
             </p>
           </div>
           <FiShield size={34} className="text-[#3525cd]" />
@@ -111,19 +101,27 @@ const UserDashboard = () => {
               <p className="mt-2 text-base text-[#464555]">Views over the last 30 days</p>
             </div>
             <span className="rounded bg-[#f3f4f5] px-4 py-1 text-sm text-[#191c1d]">
-              +12.5%
+              {dashboard?.analyticsChange || "--"}
             </span>
           </div>
 
-          <div className="flex h-72 items-end gap-10 border-b border-[#e1e3e4] px-6">
-            {bars.map((height, index) => (
-              <div
-                key={height}
-                className="w-6 rounded-t bg-[#3525cd]"
-                style={{ height: `${height}%`, opacity: 0.35 + index * 0.09 }}
-              />
-            ))}
-          </div>
+          {bars.length ? (
+            <div className="flex h-72 items-end gap-10 border-b border-[#e1e3e4] px-6">
+              {bars.map((height, index) => (
+                <div
+                  key={`${height}-${index}`}
+                  className="w-6 rounded-t bg-[#3525cd]"
+                  style={{ height: `${height}%`, opacity: 0.35 + index * 0.09 }}
+                />
+              ))}
+            </div>
+          ) : (
+            <NoData
+              className="min-h-72"
+              description="Portfolio analytics will appear when the dashboard API returns chart data."
+              title="No analytics data"
+            />
+          )}
         </article>
 
         <article className="rounded-lg bg-[#4f46e5] p-8 text-white">
@@ -165,39 +163,53 @@ const UserDashboard = () => {
         </div>
 
         <div>
-          {recentItems.map((item) => (
-            <div
-              key={item.name}
-              className="grid gap-4 border-b border-[#c7c4d8] px-8 py-5 last:border-b-0 md:grid-cols-[1.7fr_0.5fr_0.5fr_0.7fr_0.3fr] md:items-center"
-            >
-              <div className="flex items-center gap-5">
-                <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded border border-[#c7c4d8] bg-[#f3f4f5]">
-                  {item.image ? (
-                    <Image src={item.image} alt={item.name} fill className="object-cover" />
-                  ) : (
-                    <FiFileText size={24} />
-                  )}
-                </div>
-                <span className="text-base font-medium text-[#191c1d]">{item.name}</span>
-              </div>
-              <span className="text-sm text-[#464555]">{item.type}</span>
-              <span>
-                <span
-                  className={`rounded px-3 py-1 text-xs font-semibold ${
-                    item.status === "LIVE"
-                      ? "bg-[#e2dfff] text-[#3525cd]"
-                      : "bg-[#e1e3e4] text-[#191c1d]"
-                  }`}
+          {dashboardRecentItems.length ? (
+            dashboardRecentItems.map((item) => {
+              const itemName = item.name || "Untitled";
+              const itemEdited = item.edited || item.lastEdited || "--";
+              const itemStatus = item.status || "--";
+
+              return (
+                <div
+                  key={itemName}
+                  className="grid gap-4 border-b border-[#c7c4d8] px-8 py-5 last:border-b-0 md:grid-cols-[1.7fr_0.5fr_0.5fr_0.7fr_0.3fr] md:items-center"
                 >
-                  {item.status}
-                </span>
-              </span>
-              <span className="text-sm text-[#464555]">{item.edited}</span>
-              <button type="button" className="text-[#464555]">
-                <FiMoreHorizontal size={22} />
-              </button>
-            </div>
-          ))}
+                  <div className="flex items-center gap-5">
+                    <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded border border-[#c7c4d8] bg-[#f3f4f5]">
+                      {item.image ? (
+                        <Image src={item.image} alt={itemName} fill className="object-cover" />
+                      ) : (
+                        <FiFileText size={24} />
+                      )}
+                    </div>
+                    <span className="text-base font-medium text-[#191c1d]">{itemName}</span>
+                  </div>
+                  <span className="text-sm text-[#464555]">{item.type || "--"}</span>
+                  <span>
+                    <span
+                      className={`rounded px-3 py-1 text-xs font-semibold ${
+                        itemStatus === "LIVE"
+                          ? "bg-[#e2dfff] text-[#3525cd]"
+                          : "bg-[#e1e3e4] text-[#191c1d]"
+                      }`}
+                    >
+                      {itemStatus}
+                    </span>
+                  </span>
+                  <span className="text-sm text-[#464555]">{itemEdited}</span>
+                  <button type="button" className="text-[#464555]">
+                    <FiMoreHorizontal size={22} />
+                  </button>
+                </div>
+              );
+            })
+          ) : (
+            <NoData
+              className="m-6"
+              description="Recent portfolios and resumes will appear here once available."
+              title="No recent items"
+            />
+          )}
         </div>
       </section>
     </>
