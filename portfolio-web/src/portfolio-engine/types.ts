@@ -23,6 +23,7 @@ export type PortfolioRadius = "none" | "sm" | "md" | "lg" | "xl" | "full";
 export type PortfolioShadow = "none" | "sm" | "md" | "lg";
 export type PortfolioAnimation = "none" | "fade-up" | "slide-in" | "scale-in";
 export type PortfolioAlignment = "left" | "center" | "right";
+export type PortfolioJustify = "start" | "center" | "end" | "between";
 
 export interface PortfolioTheme {
   name: string;
@@ -47,7 +48,11 @@ export interface PortfolioNodeStyle {
   gap?: PortfolioSpacing;
   paddingY?: PortfolioSpacing;
   paddingX?: PortfolioSpacing;
+  marginY?: PortfolioSpacing;
+  marginX?: PortfolioSpacing;
   maxWidth?: "sm" | "md" | "lg" | "xl" | "full";
+  width?: string;
+  height?: string;
   backgroundColor?: string;
   backgroundImage?: string;
   backgroundOverlay?: string;
@@ -61,6 +66,10 @@ export interface PortfolioNodeStyle {
   borderStyle?: "solid" | "dashed" | "dotted" | "none";
   backdropBlur?: string;
   minHeight?: string;
+  fontFamily?: string;
+  fontSize?: string;
+  lineHeight?: string;
+  fontWeight?: string;
   imageHeight?: string;
   imageWidth?: string;
   imagePlacement?: "side" | "cover" | "top" | "none";
@@ -68,6 +77,43 @@ export interface PortfolioNodeStyle {
   mediaFit?: "cover" | "contain";
   radius?: PortfolioRadius;
   shadow?: PortfolioShadow;
+  cardWidth?: string;
+  cardHeight?: string;
+  cardMinHeight?: string;
+  cardPaddingY?: PortfolioSpacing;
+  cardPaddingX?: PortfolioSpacing;
+  cardBackgroundColor?: string;
+  cardBackgroundImage?: string;
+  cardBackgroundOverlay?: string;
+  cardBackgroundBlur?: string;
+  cardTextColor?: string;
+  cardAccentColor?: string;
+  cardBorderColor?: string;
+  cardBorderWidth?: string;
+  cardBorderStyle?: "solid" | "dashed" | "dotted" | "none";
+  cardRadius?: PortfolioRadius;
+  cardShadow?: PortfolioShadow;
+  cardFontFamily?: string;
+  cardFontSize?: string;
+  cardLineHeight?: string;
+  cardFontWeight?: string;
+  cardContentAlign?: PortfolioAlignment;
+  cardContentJustify?: PortfolioJustify;
+  cardContentGap?: PortfolioSpacing;
+  cardValueFontSize?: string;
+  cardValueFontWeight?: string;
+  cardValueColor?: string;
+  cardTitleFontSize?: string;
+  cardTitleFontWeight?: string;
+  cardTitleColor?: string;
+  cardBodyFontSize?: string;
+  cardBodyLineHeight?: string;
+  cardBodyColor?: string;
+  cardMetaFontSize?: string;
+  cardMetaColor?: string;
+  cardTagFontSize?: string;
+  cardTagColor?: string;
+  cardTagBackgroundColor?: string;
 }
 
 export interface PortfolioTemplateNode {

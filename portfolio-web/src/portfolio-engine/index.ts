@@ -27,6 +27,7 @@ export type {
   PortfolioNodeType,
   PortfolioPaletteItem,
   PortfolioProject,
+  PortfolioJustify,
   PortfolioTemplateNode,
   PortfolioTemplateSchema,
   PortfolioTheme,

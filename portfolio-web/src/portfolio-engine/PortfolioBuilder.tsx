@@ -6,6 +6,7 @@ import {
   FiCopy,
   FiDatabase,
   FiEye,
+  FiExternalLink,
   FiLayers,
   FiMonitor,
   FiMove,
@@ -16,6 +17,7 @@ import {
   FiTrash2,
 } from "react-icons/fi";
 import { PortfolioRenderer } from "./PortfolioRenderer";
+import { NodeStyleEditor } from "./NodeStyleEditor";
 import {
   demoPortfolioData,
   portfolioComponentPalette,
@@ -42,6 +44,11 @@ import {
   reorderRootPortfolioNode,
   updatePortfolioNode,
 } from "./schemaUtils";
+import {
+  createPortfolioPreviewId,
+  getPortfolioPreviewStorageKey,
+  type PortfolioPreviewPayload,
+} from "./previewStorage";
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(" ");
@@ -75,27 +82,6 @@ const colorFieldLabels: Array<{
   { key: "mutedTextColor", label: "Muted Text" },
   { key: "accentColor", label: "Accent" },
   { key: "borderColor", label: "Border" },
-];
-
-const styleControls: Array<{
-  key: keyof PortfolioNodeStyle;
-  label: string;
-  options: string[];
-}> = [
-  { key: "layout", label: "Layout", options: ["stack", "split", "grid", "centered", "inline"] },
-  { key: "align", label: "Align", options: ["left", "center", "right"] },
-  { key: "gap", label: "Gap", options: ["none", "sm", "md", "lg", "xl"] },
-  { key: "paddingY", label: "Y Padding", options: ["none", "sm", "md", "lg", "xl"] },
-  { key: "paddingX", label: "X Padding", options: ["none", "sm", "md", "lg", "xl"] },
-  { key: "maxWidth", label: "Max Width", options: ["sm", "md", "lg", "xl", "full"] },
-  { key: "backgroundSize", label: "BG Size", options: ["cover", "contain", "auto"] },
-  { key: "backgroundPosition", label: "BG Position", options: ["center", "top", "bottom", "left", "right"] },
-  { key: "imagePlacement", label: "Image Mode", options: ["side", "cover", "top", "none"] },
-  { key: "aspectRatio", label: "Aspect", options: ["auto", "video", "square", "portrait", "wide"] },
-  { key: "mediaFit", label: "Media Fit", options: ["cover", "contain"] },
-  { key: "borderStyle", label: "Border Style", options: ["none", "solid", "dashed", "dotted"] },
-  { key: "radius", label: "Radius", options: ["none", "sm", "md", "lg", "xl", "full"] },
-  { key: "shadow", label: "Shadow", options: ["none", "sm", "md", "lg"] },
 ];
 
 const bindingExamples = [
@@ -200,6 +186,30 @@ const makeUniqueKey = (base: string, source: Record<string, unknown>) => {
   return nextKey;
 };
 
+const stringifyForSource = (value: unknown) =>
+  JSON.stringify(value, null, 2).replace(/</g, "\\u003c");
+
+const createPortfolioPageSource = (
+  template: PortfolioTemplateSchema,
+  data: PortfolioData,
+) => `"use client";
+
+import { PortfolioRenderer } from "@/portfolio-engine";
+import type { PortfolioData, PortfolioTemplateSchema } from "@/portfolio-engine";
+
+const template = ${stringifyForSource(template)} satisfies PortfolioTemplateSchema;
+
+const data = ${stringifyForSource(data)} satisfies PortfolioData;
+
+export default function PortfolioPage() {
+  return (
+    <main className="min-h-screen">
+      <PortfolioRenderer template={template} data={data} />
+    </main>
+  );
+}
+`;
+
 export const PortfolioBuilder = () => {
   const [template, setTemplate] = useState<PortfolioTemplateSchema>(() =>
     cloneTemplate(starterPortfolioTemplates[0]),
@@ -215,6 +225,8 @@ export const PortfolioBuilder = () => {
   const [jsonInput, setJsonInput] = useState(sampleSectionJson);
   const [jsonError, setJsonError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [copiedSource, setCopiedSource] = useState(false);
+  const [previewError, setPreviewError] = useState("");
 
   const selectedNode = useMemo(
     () => getPortfolioNodeById(template, selectedNodeId),
@@ -234,6 +246,11 @@ export const PortfolioBuilder = () => {
 
   const portfolioDataJson = useMemo(() => JSON.stringify(portfolioData, null, 2), [portfolioData]);
 
+  const pageSource = useMemo(
+    () => createPortfolioPageSource(template, portfolioData),
+    [portfolioData, template],
+  );
+
   const customCollectionKeys = useMemo(
     () => Object.keys(portfolioData.collections),
     [portfolioData.collections],
@@ -246,13 +263,20 @@ export const PortfolioBuilder = () => {
     setTemplate((current) => {
       const selected = getPortfolioNodeById(current, selectedNodeId);
 
-      if (selected?.type === "section") {
+      if (selected && selected.type !== "root") {
         return addPortfolioChildNode(current, selected.id, node);
       }
 
       if (node.type !== "section") {
         const section = getBlankSection();
         section.label = `${node.label} Section`;
+        if (node.type === "hero") {
+          section.style = {
+            paddingY: "xl",
+            paddingX: "lg",
+            maxWidth: "xl",
+          };
+        }
         section.children = [node];
         return appendPortfolioNodeToRoot(current, section);
       }
@@ -296,10 +320,12 @@ export const PortfolioBuilder = () => {
   const updateSelectedStyle = (key: keyof PortfolioNodeStyle, value: string) => {
     updateSelectedNode((node) => ({
       ...node,
-      style: {
-        ...node.style,
-        [key]: key === "columns" ? Number(value) : value,
-      },
+      style: Object.fromEntries(
+        Object.entries({
+          ...node.style,
+          [key]: key === "columns" && value ? Number(value) : value,
+        }).filter(([, entryValue]) => entryValue !== ""),
+      ) as PortfolioNodeStyle,
     }));
   };
 
@@ -756,12 +782,25 @@ export const PortfolioBuilder = () => {
       const nextSelectedNodeId = node.id;
 
       setTemplate((current) => {
+        const selected = getPortfolioNodeById(current, selectedNodeId);
+
+        if (selected && selected.type !== "root") {
+          return addPortfolioChildNode(current, selected.id, node);
+        }
+
         if (node.type === "section") {
           return appendPortfolioNodeToRoot(current, node);
         }
 
         const section = getBlankSection();
         section.label = `${node.label} Section`;
+        if (node.type === "hero") {
+          section.style = {
+            paddingY: "xl",
+            paddingX: "lg",
+            maxWidth: "xl",
+          };
+        }
         section.children = [node];
         return appendPortfolioNodeToRoot(current, section);
       });
@@ -800,6 +839,44 @@ export const PortfolioBuilder = () => {
     await navigator.clipboard.writeText(templateJson);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1400);
+  };
+
+  const copyPageSource = async () => {
+    await navigator.clipboard.writeText(pageSource);
+    setCopiedSource(true);
+    window.setTimeout(() => setCopiedSource(false), 1400);
+  };
+
+  const openPreviewInNewTab = () => {
+    setPreviewError("");
+
+    try {
+      const previewId = createPortfolioPreviewId();
+      const payload: PortfolioPreviewPayload = {
+        template,
+        data: portfolioData,
+        createdAt: new Date().toISOString(),
+      };
+
+      window.localStorage.setItem(
+        getPortfolioPreviewStorageKey(previewId),
+        JSON.stringify(payload),
+      );
+
+      const previewWindow = window.open(
+        `/templates/builder/preview?previewId=${encodeURIComponent(previewId)}`,
+        "_blank",
+      );
+
+      if (!previewWindow) {
+        setPreviewError("Preview was blocked. Allow popups for this site and try again.");
+        return;
+      }
+
+      previewWindow.focus();
+    } catch {
+      setPreviewError("Preview could not open. Your browser blocked local preview data.");
+    }
   };
 
   return (
@@ -868,8 +945,32 @@ export const PortfolioBuilder = () => {
             <FiCopy size={15} />
             {copied ? "Copied" : "Copy JSON"}
           </button>
+
+          <button
+            type="button"
+            onClick={openPreviewInNewTab}
+            className="inline-flex h-9 items-center gap-2 rounded-md border border-[#c7c4d8] bg-white px-3 text-sm font-bold text-[#191c1d] transition hover:border-[#3525cd] hover:text-[#3525cd]"
+          >
+            <FiExternalLink size={15} />
+            Open Preview
+          </button>
+
+          <button
+            type="button"
+            onClick={copyPageSource}
+            className="inline-flex h-9 items-center gap-2 rounded-md bg-[#3525cd] px-3 text-sm font-bold text-white transition hover:bg-[#4f46e5]"
+          >
+            <FiCode size={15} />
+            {copiedSource ? "Copied" : "Copy Page Source"}
+          </button>
         </div>
       </div>
+
+      {previewError && (
+        <p className="rounded-md border border-[#ffdad6] bg-[#fff3f1] px-3 py-2 text-sm font-semibold text-[#ba1a1a]">
+          {previewError}
+        </p>
+      )}
 
       <div className="grid gap-4 xl:grid-cols-[330px_minmax(0,1fr)]">
         <aside className="flex min-h-[620px] flex-col overflow-hidden rounded-lg border border-[#c7c4d8] bg-white xl:h-[calc(100vh-180px)]">
@@ -967,28 +1068,6 @@ export const PortfolioBuilder = () => {
                       />
                     </label>
 
-                    <label>
-                      <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#464555]">
-                        Animation
-                      </span>
-                      <select
-                        value={selectedNode.animation || "none"}
-                        onChange={(event) =>
-                          updateSelectedNode((node) => ({
-                            ...node,
-                            animation: event.target.value as PortfolioTemplateNode["animation"],
-                          }))
-                        }
-                        className="mt-1.5 h-9 w-full rounded-md border border-[#c7c4d8] bg-[#f8f9fa] px-3 text-sm outline-none focus:border-[#3525cd]"
-                      >
-                        {["none", "fade-up", "slide-in", "scale-in"].map((item) => (
-                          <option key={item} value={item}>
-                            {item}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
                     {selectedNode.props && Object.keys(selectedNode.props).length > 0 && (
                       <div className="border-t border-[#d9d7e8] pt-4">
                         <h3 className="mb-3 text-sm font-black text-[#090a0b]">Content</h3>
@@ -1033,90 +1112,13 @@ export const PortfolioBuilder = () => {
                       </div>
                     )}
 
-                    <div className="border-t border-[#d9d7e8] pt-4">
-                      <h3 className="mb-3 text-sm font-black text-[#090a0b]">Style</h3>
-                      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
-                        {styleControls.map((control) => (
-                          <label key={control.key}>
-                            <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#464555]">
-                              {control.label}
-                            </span>
-                            <select
-                              value={String(selectedNode.style?.[control.key] || "")}
-                              onChange={(event) => updateSelectedStyle(control.key, event.target.value)}
-                              className="mt-1.5 h-9 w-full rounded-md border border-[#c7c4d8] bg-[#f8f9fa] px-3 text-sm outline-none focus:border-[#3525cd]"
-                            >
-                              <option value="">Default</option>
-                              {control.options.map((option) => (
-                                <option key={option} value={option}>
-                                  {option}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                        ))}
-                      </div>
-                      <div className="mt-3 grid gap-2">
-                        {[
-                          ["backgroundColor", "Background"],
-                          ["textColor", "Text"],
-                          ["accentColor", "Accent"],
-                          ["borderColor", "Border"],
-                        ].map(([key, label]) => {
-                          const value = String(
-                            selectedNode.style?.[key as keyof PortfolioNodeStyle] || "#ffffff",
-                          );
-
-                          return (
-                            <label key={key} className="flex items-center justify-between gap-3">
-                              <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#464555]">
-                                {label}
-                              </span>
-                              <span className="flex items-center gap-2">
-                                <code className="text-xs font-bold text-[#464555]">{value}</code>
-                                <input
-                                  type="color"
-                                  value={value}
-                                  onChange={(event) =>
-                                    updateSelectedStyle(key as keyof PortfolioNodeStyle, event.target.value)
-                                  }
-                                  className="h-8 w-10 rounded-md border border-[#c7c4d8] bg-white p-1"
-                                />
-                              </span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                      <div className="mt-3 space-y-3 border-t border-[#d9d7e8] pt-4">
-                        {[
-                          ["backgroundImage", "Background Image", "Use a URL or binding like {{media.0.src}}"],
-                          ["backgroundOverlay", "Background Overlay", "rgba(9, 10, 11, 0.45)"],
-                          ["backgroundBlur", "Background Blur", "8px"],
-                          ["backdropBlur", "Content Backdrop Blur", "12px"],
-                          ["borderWidth", "Border Width", "1px"],
-                          ["minHeight", "Min Height", "480px"],
-                          ["imageWidth", "Image Holder Width", "320px"],
-                          ["imageHeight", "Image Holder Height", "260px"],
-                        ].map(([key, label, placeholder]) => (
-                          <label key={key} className="block">
-                            <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#464555]">
-                              {label}
-                            </span>
-                            <input
-                              value={String(selectedNode.style?.[key as keyof PortfolioNodeStyle] || "")}
-                              placeholder={placeholder}
-                              onChange={(event) =>
-                                updateSelectedStyle(
-                                  key as keyof PortfolioNodeStyle,
-                                  event.target.value,
-                                )
-                              }
-                              className="mt-1.5 h-9 w-full rounded-md border border-[#c7c4d8] bg-[#f8f9fa] px-3 text-sm outline-none focus:border-[#3525cd]"
-                            />
-                          </label>
-                        ))}
-                      </div>
-                    </div>
+                    <NodeStyleEditor
+                      node={selectedNode}
+                      onAnimationChange={(animation) =>
+                        updateSelectedNode((node) => ({ ...node, animation }))
+                      }
+                      onStyleChange={updateSelectedStyle}
+                    />
                   </>
                 ) : (
                   <div className="rounded-lg border border-dashed border-[#c7c4d8] bg-[#f8f9fa] px-4 py-6 text-center">
@@ -2058,6 +2060,15 @@ export const PortfolioBuilder = () => {
                 <pre className="max-h-[520px] overflow-auto rounded-md bg-[#090a0b] p-4 text-xs leading-5 text-white">
                   {templateJson}
                 </pre>
+
+                <details className="rounded-lg border border-[#d9d7e8] bg-[#f8f9fa] p-3">
+                  <summary className="cursor-pointer text-sm font-black text-[#090a0b]">
+                    Generated page source
+                  </summary>
+                  <pre className="mt-3 max-h-[420px] overflow-auto rounded-md bg-[#090a0b] p-4 text-xs leading-5 text-white">
+                    {pageSource}
+                  </pre>
+                </details>
               </div>
             )}
           </div>

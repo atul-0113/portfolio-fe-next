@@ -4,6 +4,7 @@ import {
   PortfolioCustomCollectionItem,
   PortfolioExperience,
   PortfolioMediaItem,
+  PortfolioNodeStyle,
   PortfolioProject,
   PortfolioTemplateNode,
   PortfolioTemplateSchema,
@@ -46,6 +47,38 @@ const builderPaddingXClasses = {
   xl: "px-6",
 } as const;
 
+const marginYClasses = {
+  none: "my-0",
+  sm: "my-4",
+  md: "my-6",
+  lg: "my-8",
+  xl: "my-12",
+} as const;
+
+const marginXClasses = {
+  none: "mx-0",
+  sm: "mx-4",
+  md: "mx-6",
+  lg: "mx-8",
+  xl: "mx-12",
+} as const;
+
+const cardPaddingYClasses = {
+  none: "py-0",
+  sm: "py-3",
+  md: "py-5",
+  lg: "py-7",
+  xl: "py-9",
+} as const;
+
+const cardPaddingXClasses = {
+  none: "px-0",
+  sm: "px-3",
+  md: "px-5",
+  lg: "px-7",
+  xl: "px-9",
+} as const;
+
 const gapClasses = {
   none: "gap-0",
   sm: "gap-3",
@@ -84,6 +117,19 @@ const alignmentClasses = {
   right: "text-right items-end",
 } as const;
 
+const cardContentAlignmentClasses = {
+  left: "items-start text-left",
+  center: "items-center text-center",
+  right: "items-end text-right",
+} as const;
+
+const cardContentJustifyClasses = {
+  start: "justify-start",
+  center: "justify-center",
+  end: "justify-end",
+  between: "justify-between",
+} as const;
+
 const aspectRatioClasses = {
   auto: "min-h-[260px]",
   video: "aspect-video",
@@ -99,11 +145,21 @@ const animationClasses = {
   "scale-in": "portfolio-animate-scale-in",
 } as const;
 
+const columnClasses: Record<number, string> = {
+  1: "grid-cols-1",
+  2: "md:grid-cols-2",
+  3: "md:grid-cols-3",
+  4: "md:grid-cols-2 xl:grid-cols-4",
+};
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 
 const getTextValue = (value: unknown, data: PortfolioData, fallback = "") =>
   resolveText(value ?? fallback, data) || fallback;
+
+const getStyleValue = (value: unknown, data: PortfolioData) =>
+  typeof value === "string" ? resolveText(value, data) || value : undefined;
 
 const getBackgroundLayerStyle = (
   style:
@@ -142,16 +198,23 @@ const getBackgroundLayerStyle = (
 const getNodeStyle = (
   node: PortfolioTemplateNode,
   template: PortfolioTemplateSchema,
+  data: PortfolioData,
 ): CSSProperties => {
   return {
-    backgroundColor: node.style?.backgroundColor,
-    minHeight: node.style?.minHeight,
-    borderColor: node.style?.borderColor,
-    borderWidth: node.style?.borderWidth,
+    backgroundColor: getStyleValue(node.style?.backgroundColor, data),
+    width: getStyleValue(node.style?.width, data),
+    height: getStyleValue(node.style?.height, data),
+    minHeight: getStyleValue(node.style?.minHeight, data),
+    borderColor: getStyleValue(node.style?.borderColor, data),
+    borderWidth: getStyleValue(node.style?.borderWidth, data),
     borderStyle: node.style?.borderStyle,
-    backdropFilter: node.style?.backdropBlur ? `blur(${node.style.backdropBlur})` : undefined,
-    color: node.style?.textColor,
-    "--portfolio-node-accent": node.style?.accentColor || template.theme.accentColor,
+    backdropFilter: node.style?.backdropBlur ? `blur(${getStyleValue(node.style.backdropBlur, data)})` : undefined,
+    color: getStyleValue(node.style?.textColor, data),
+    fontFamily: getStyleValue(node.style?.fontFamily, data),
+    fontSize: getStyleValue(node.style?.fontSize, data),
+    lineHeight: getStyleValue(node.style?.lineHeight, data),
+    fontWeight: getStyleValue(node.style?.fontWeight, data),
+    "--portfolio-node-accent": getStyleValue(node.style?.accentColor, data) || template.theme.accentColor,
   } as CSSProperties;
 };
 
@@ -164,7 +227,20 @@ const shouldRenderNodeSurface = (node: PortfolioTemplateNode) =>
       node.style?.textColor ||
       node.style?.backdropBlur ||
       node.style?.minHeight ||
-      node.style?.borderWidth,
+      node.style?.borderWidth ||
+      node.style?.width ||
+      node.style?.height ||
+      node.style?.fontFamily ||
+      node.style?.fontSize ||
+      node.style?.lineHeight ||
+      node.style?.fontWeight ||
+      node.style?.marginY ||
+      node.style?.marginX ||
+      node.style?.paddingY ||
+      node.style?.paddingX ||
+      node.style?.maxWidth ||
+      node.style?.radius ||
+      node.style?.shadow,
   );
 
 const getPropText = (
@@ -189,6 +265,115 @@ const getSourceItems = <T,>(
 
 const isMediaItem = (value: unknown): value is PortfolioMediaItem =>
   value !== null && typeof value === "object" && "src" in value && "type" in value;
+
+const getCardBackgroundLayerStyle = (
+  style: PortfolioNodeStyle | undefined,
+  data: PortfolioData,
+) =>
+  getBackgroundLayerStyle(
+    {
+      backgroundImage: style?.cardBackgroundImage,
+      backgroundOverlay: style?.cardBackgroundOverlay,
+      backgroundBlur: style?.cardBackgroundBlur,
+      backgroundSize: style?.backgroundSize,
+      backgroundPosition: style?.backgroundPosition,
+    },
+    data,
+  );
+
+const getCardStyle = (
+  node: PortfolioTemplateNode,
+  template: PortfolioTemplateSchema,
+  data: PortfolioData,
+): CSSProperties =>
+  ({
+    backgroundColor: getStyleValue(node.style?.cardBackgroundColor, data),
+    width: getStyleValue(node.style?.cardWidth, data),
+    height: getStyleValue(node.style?.cardHeight, data),
+    minHeight: getStyleValue(node.style?.cardMinHeight, data),
+    borderColor: getStyleValue(node.style?.cardBorderColor, data),
+    borderWidth: getStyleValue(node.style?.cardBorderWidth, data),
+    borderStyle: node.style?.cardBorderStyle,
+    color: getStyleValue(node.style?.cardTextColor, data),
+    fontFamily: getStyleValue(node.style?.cardFontFamily, data),
+    fontSize: getStyleValue(node.style?.cardFontSize, data),
+    lineHeight: getStyleValue(node.style?.cardLineHeight, data),
+    fontWeight: getStyleValue(node.style?.cardFontWeight, data),
+    "--portfolio-card-accent":
+      getStyleValue(node.style?.cardAccentColor, data) ||
+      getStyleValue(node.style?.accentColor, data) ||
+      template.theme.accentColor,
+    "--portfolio-card-muted":
+      getStyleValue(node.style?.cardTextColor, data) || template.theme.mutedTextColor,
+  }) as CSSProperties;
+
+const getCardClasses = (
+  node: PortfolioTemplateNode,
+  defaults: {
+    radius?: keyof typeof radiusClasses;
+    shadow?: keyof typeof shadowClasses;
+    paddingY?: keyof typeof cardPaddingYClasses;
+    paddingX?: keyof typeof cardPaddingXClasses;
+  } = {},
+) =>
+  cx(
+    "relative overflow-hidden border border-[var(--portfolio-border)] bg-[var(--portfolio-surface)]",
+    cardPaddingYClasses[node.style?.cardPaddingY || defaults.paddingY || "md"],
+    cardPaddingXClasses[node.style?.cardPaddingX || defaults.paddingX || "md"],
+    radiusClasses[node.style?.cardRadius || defaults.radius || "xl"],
+    shadowClasses[node.style?.cardShadow || defaults.shadow || "sm"],
+  );
+
+const getCardContentClasses = (node: PortfolioTemplateNode) =>
+  cx(
+    "relative z-10 flex h-full min-h-0 flex-col",
+    cardContentAlignmentClasses[node.style?.cardContentAlign || node.style?.align || "left"],
+    cardContentJustifyClasses[node.style?.cardContentJustify || "start"],
+    gapClasses[node.style?.cardContentGap || "none"],
+  );
+
+const getCardPartStyle = (
+  node: PortfolioTemplateNode,
+  data: PortfolioData,
+  part: "value" | "title" | "body" | "meta" | "tag",
+): CSSProperties => {
+  if (part === "value") {
+    return {
+      fontSize: getStyleValue(node.style?.cardValueFontSize, data),
+      fontWeight: getStyleValue(node.style?.cardValueFontWeight, data),
+      color: getStyleValue(node.style?.cardValueColor, data),
+    };
+  }
+
+  if (part === "title") {
+    return {
+      fontSize: getStyleValue(node.style?.cardTitleFontSize, data),
+      fontWeight: getStyleValue(node.style?.cardTitleFontWeight, data),
+      color: getStyleValue(node.style?.cardTitleColor, data),
+    };
+  }
+
+  if (part === "body") {
+    return {
+      fontSize: getStyleValue(node.style?.cardBodyFontSize, data),
+      lineHeight: getStyleValue(node.style?.cardBodyLineHeight, data),
+      color: getStyleValue(node.style?.cardBodyColor, data),
+    };
+  }
+
+  if (part === "meta") {
+    return {
+      fontSize: getStyleValue(node.style?.cardMetaFontSize, data),
+      color: getStyleValue(node.style?.cardMetaColor, data),
+    };
+  }
+
+  return {
+    fontSize: getStyleValue(node.style?.cardTagFontSize, data),
+    color: getStyleValue(node.style?.cardTagColor, data),
+    backgroundColor: getStyleValue(node.style?.cardTagBackgroundColor, data),
+  };
+};
 
 export interface PortfolioRendererProps {
   template: PortfolioTemplateSchema;
@@ -230,8 +415,37 @@ export const PortfolioRenderer = ({
     return desktopColumns.includes("3") ? "grid-cols-3" : "grid-cols-2";
   };
 
+  const getResponsiveColumnClass = (columns: number | undefined, fallback: number) =>
+    getResponsiveGridClass(columnClasses[columns || fallback] || columnClasses[fallback]);
+
   const renderChildren = (node: PortfolioTemplateNode) =>
     node.children?.filter((child) => child.isVisible !== false).map((child) => renderNode(child));
+
+  const renderNestedChildren = (node: PortfolioTemplateNode, className = "mt-5") => {
+    const children = renderChildren(node);
+
+    if (!children?.length) {
+      return null;
+    }
+
+    return <div className={cx("w-full", className)}>{children}</div>;
+  };
+
+  const renderCardBackgroundLayer = (node: PortfolioTemplateNode) => {
+    const backgroundLayerStyle = getCardBackgroundLayerStyle(node.style, data);
+
+    if (!backgroundLayerStyle) {
+      return null;
+    }
+
+    return (
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-0"
+        style={backgroundLayerStyle}
+      />
+    );
+  };
 
   const renderSection = (node: PortfolioTemplateNode) => {
     const layout = node.style?.layout || "stack";
@@ -242,7 +456,9 @@ export const PortfolioRenderer = ({
     return (
       <section
         className={cx(
-          "relative mx-auto w-full overflow-hidden",
+          "relative w-full overflow-hidden",
+          node.style?.marginX ? marginXClasses[node.style.marginX] : "mx-auto",
+          node.style?.marginY && marginYClasses[node.style.marginY],
           (isBuilder ? builderPaddingYClasses : paddingYClasses)[node.style?.paddingY || "lg"],
           (isBuilder ? builderPaddingXClasses : paddingXClasses)[node.style?.paddingX || "lg"],
           maxWidthClasses[node.style?.maxWidth || "xl"],
@@ -250,7 +466,7 @@ export const PortfolioRenderer = ({
           shadowClasses[node.style?.shadow || "none"],
           animationClasses[node.animation || "none"],
         )}
-        style={getNodeStyle(node, template)}
+        style={getNodeStyle(node, template, data)}
       >
         {backgroundLayerStyle && (
           <div
@@ -263,7 +479,7 @@ export const PortfolioRenderer = ({
           className={cx(
             "relative z-10",
             layout === "grid" && "grid",
-            layout === "grid" && getResponsiveGridClass("md:grid-cols-2"),
+            layout === "grid" && getResponsiveColumnClass(node.style?.columns, 2),
             layout === "split" && "grid",
             layout === "split" && getResponsiveGridClass("lg:grid-cols-2"),
             layout === "inline" && "flex flex-wrap",
@@ -288,18 +504,28 @@ export const PortfolioRenderer = ({
       imagePlacement === "side" && layout === "split" && (!isBuilder || viewport === "desktop");
     const shouldShowImage = imagePlacement !== "cover" && imagePlacement !== "none";
     const shouldShowTopImage = imagePlacement === "top";
-    const imageWidth = node.style?.imageWidth || "300px";
-    const imageHeight = node.style?.imageHeight;
+    const imageWidth = getStyleValue(node.style?.imageWidth, data) || "300px";
+    const imageHeight = getStyleValue(node.style?.imageHeight, data);
     const imageAspectRatio = node.style?.aspectRatio || "portrait";
     const imageFit = node.style?.mediaFit || "cover";
     const imagePosition = node.style?.backgroundPosition || "center";
-    const coverOverlay = node.style?.backgroundOverlay || "rgba(9, 10, 11, 0.38)";
-    const coverBlur = node.style?.backgroundBlur || "0px";
+    const coverOverlay =
+      getStyleValue(node.style?.backgroundOverlay, data) || "rgba(9, 10, 11, 0.38)";
+    const coverBlur = getStyleValue(node.style?.backgroundBlur, data) || "0px";
     const shouldBlurCover = coverBlur !== "0" && coverBlur !== "0px";
     const heroBackgroundLayerStyle = !isCoverImage
       ? getBackgroundLayerStyle(node.style, data)
       : null;
-    const shouldUseFallbackPadding = Boolean(node.style?.backgroundColor || isCoverImage);
+    const shouldRenderHeroSurface = Boolean(
+      isCoverImage ||
+        node.style?.backgroundColor ||
+        node.style?.backgroundImage ||
+        node.style?.backdropBlur ||
+        node.style?.borderWidth,
+    );
+    const shouldUseFallbackPadding = Boolean(
+      node.style?.backgroundColor || node.style?.backgroundImage || isCoverImage,
+    );
     const heroPaddingYClass = node.style?.paddingY
       ? (isBuilder ? builderPaddingYClasses : paddingYClasses)[node.style.paddingY]
       : shouldUseFallbackPadding
@@ -323,8 +549,8 @@ export const PortfolioRenderer = ({
         style={{
           backgroundImage: `url(${imageSrc})`,
           backgroundPosition: imagePosition,
-          borderColor: node.style?.borderColor,
-          borderWidth: node.style?.borderWidth,
+          borderColor: getStyleValue(node.style?.borderColor, data),
+          borderWidth: getStyleValue(node.style?.borderWidth, data),
           borderStyle: node.style?.borderStyle,
           height: imageHeight || undefined,
         }}
@@ -337,25 +563,23 @@ export const PortfolioRenderer = ({
       <div
         className={cx(
           "relative grid w-full gap-7 overflow-hidden",
+          node.style?.marginY && marginYClasses[node.style.marginY],
+          node.style?.marginX && marginXClasses[node.style.marginX],
           heroPaddingYClass,
           heroPaddingXClass,
           isCoverImage && "min-h-[520px] content-center text-white",
           shouldSplit && "items-center",
           shouldShowTopImage && "grid-cols-1",
-          radiusClasses[node.style?.radius || "none"],
-          shadowClasses[node.style?.shadow || "none"],
+          shouldRenderHeroSurface && radiusClasses[node.style?.radius || "none"],
+          shouldRenderHeroSurface && shadowClasses[node.style?.shadow || "none"],
         )}
         style={{
-          backgroundColor: node.style?.backgroundColor,
-          borderColor: node.style?.borderColor,
-          borderWidth: node.style?.borderWidth,
-          borderStyle: node.style?.borderStyle,
-          color: node.style?.textColor,
-          minHeight: isCoverImage ? node.style?.minHeight || imageHeight || "520px" : node.style?.minHeight,
-          backdropFilter: node.style?.backdropBlur ? `blur(${node.style.backdropBlur})` : undefined,
+          ...getNodeStyle(node, template, data),
+          minHeight: isCoverImage
+            ? getStyleValue(node.style?.minHeight, data) || imageHeight || "520px"
+            : getStyleValue(node.style?.minHeight, data),
           gridTemplateColumns: shouldSplit ? `minmax(0, 1fr) ${imageWidth}` : undefined,
           "--portfolio-muted": isCoverImage ? "rgba(255, 255, 255, 0.78)" : undefined,
-          "--portfolio-node-accent": node.style?.accentColor,
         } as CSSProperties}
       >
         {heroBackgroundLayerStyle && (
@@ -413,6 +637,7 @@ export const PortfolioRenderer = ({
               {data.profile.location}
             </span>
           </div>
+          {renderNestedChildren(node)}
         </div>
         {shouldShowImage && !shouldShowTopImage && <div className="relative z-10">{imageHolder}</div>}
       </div>
@@ -430,16 +655,20 @@ export const PortfolioRenderer = ({
       <p className="mt-4 text-base leading-7 text-[var(--portfolio-muted)]">
         {getPropText(node, "body", data)}
       </p>
+      {renderNestedChildren(node)}
     </div>
   );
 
   const renderButton = (node: PortfolioTemplateNode) => (
-    <a
-      href={getPropText(node, "href", data, "#")}
-      className="inline-flex h-11 w-fit items-center rounded-full bg-[var(--portfolio-accent)] px-6 text-sm font-bold text-white transition hover:-translate-y-0.5"
-    >
-      {getPropText(node, "label", data, "Open")}
-    </a>
+    <div>
+      <a
+        href={getPropText(node, "href", data, "#")}
+        className="inline-flex h-11 w-fit items-center rounded-full bg-[var(--portfolio-accent)] px-6 text-sm font-bold text-white transition hover:-translate-y-0.5"
+      >
+        {getPropText(node, "label", data, "Open")}
+      </a>
+      {renderNestedChildren(node)}
+    </div>
   );
 
   const renderCTA = (node: PortfolioTemplateNode) => (
@@ -475,6 +704,7 @@ export const PortfolioRenderer = ({
           {getPropText(node, "secondaryLabel", data, "Learn More")}
         </a>
       </div>
+      {renderNestedChildren(node)}
     </div>
   );
 
@@ -482,12 +712,43 @@ export const PortfolioRenderer = ({
     const stats = getSourceItems<{ label: string; value: string }>(node, data, "stats");
 
     return (
-      <div className={cx("grid w-full", gapClasses[node.style?.gap || "md"], getResponsiveGridClass("md:grid-cols-3"))}>
+      <div
+        className={cx(
+          "grid w-full",
+          gapClasses[node.style?.gap || "md"],
+          getResponsiveColumnClass(node.style?.columns, 3),
+          node.style?.cardWidth && "justify-items-center",
+        )}
+      >
         {stats.map((stat) => (
-          <div key={`${stat.label}-${stat.value}`} className="rounded-xl border border-[var(--portfolio-border)] bg-[var(--portfolio-surface)] p-6 transition hover:-translate-y-1 hover:shadow-lg">
-            <p className="text-[32px] font-black text-[var(--portfolio-accent)]">{stat.value}</p>
-            <p className="mt-2 text-sm font-semibold text-[var(--portfolio-muted)]">{stat.label}</p>
-          </div>
+          <article
+            key={`${stat.label}-${stat.value}`}
+            className={cx(
+              getCardClasses(node, { paddingY: "lg", paddingX: "lg", radius: "xl", shadow: "sm" }),
+              "transition hover:-translate-y-1 hover:shadow-lg",
+            )}
+            style={getCardStyle(node, template, data)}
+          >
+            {renderCardBackgroundLayer(node)}
+            <div className={getCardContentClasses(node)}>
+              <p
+                className="text-[32px] font-black text-[var(--portfolio-card-accent)]"
+                style={getCardPartStyle(node, data, "value")}
+              >
+                {stat.value}
+              </p>
+              <p
+                className={cx(
+                  "text-sm font-semibold text-[var(--portfolio-card-muted)]",
+                  !node.style?.cardContentGap && "mt-2",
+                )}
+                style={getCardPartStyle(node, data, "body")}
+              >
+                {stat.label}
+              </p>
+              {renderNestedChildren(node, "mt-4")}
+            </div>
+          </article>
         ))}
       </div>
     );
@@ -501,27 +762,31 @@ export const PortfolioRenderer = ({
     const imageAspectRatio = node.style?.aspectRatio || "video";
     const imageFit = node.style?.mediaFit || "cover";
     const imagePosition = node.style?.backgroundPosition || "center";
-    const imageHeight = node.style?.imageHeight;
+    const imageHeight = getStyleValue(node.style?.imageHeight, data);
 
     return (
-      <div className={cx("grid w-full", gapClasses[node.style?.gap || "lg"], getResponsiveGridClass("md:grid-cols-2 xl:grid-cols-3"))}>
+      <div
+        className={cx(
+          "grid w-full",
+          gapClasses[node.style?.gap || "lg"],
+          getResponsiveColumnClass(node.style?.columns, 3),
+          node.style?.cardWidth && "justify-items-center",
+        )}
+      >
         {projects.map((project) => (
           <article
             key={project.title}
             className={cx(
-              "group overflow-hidden border border-[var(--portfolio-border)] bg-[var(--portfolio-surface)] transition duration-300 hover:-translate-y-1 hover:shadow-xl",
-              radiusClasses[node.style?.radius || "xl"],
-              shadowClasses[node.style?.shadow || "sm"],
+              "group relative overflow-hidden border border-[var(--portfolio-border)] bg-[var(--portfolio-surface)] transition duration-300 hover:-translate-y-1 hover:shadow-xl",
+              radiusClasses[node.style?.cardRadius || node.style?.radius || "xl"],
+              shadowClasses[node.style?.cardShadow || node.style?.shadow || "sm"],
             )}
-            style={{
-              borderColor: node.style?.borderColor,
-              borderWidth: node.style?.borderWidth,
-              borderStyle: node.style?.borderStyle,
-            }}
+            style={getCardStyle(node, template, data)}
           >
+            {renderCardBackgroundLayer(node)}
             <div
               className={cx(
-                "bg-[var(--portfolio-soft-accent)] bg-no-repeat transition duration-500 group-hover:scale-[1.03]",
+                "relative z-10 bg-[var(--portfolio-soft-accent)] bg-no-repeat transition duration-500 group-hover:scale-[1.03]",
                 !imageHeight && aspectRatioClasses[imageAspectRatio],
                 imageFit === "contain" ? "bg-contain" : "bg-cover",
               )}
@@ -533,16 +798,37 @@ export const PortfolioRenderer = ({
               role="img"
               aria-label={project.title}
             />
-            <div className="p-6">
-              <h3 className="text-xl font-black">{project.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-[var(--portfolio-muted)]">{project.description}</p>
-              <div className="mt-5 flex flex-wrap gap-2">
+            <div
+              className={cx(
+                getCardContentClasses(node),
+                cardPaddingYClasses[node.style?.cardPaddingY || "lg"],
+                cardPaddingXClasses[node.style?.cardPaddingX || "lg"],
+              )}
+            >
+              <h3 className="text-xl font-black" style={getCardPartStyle(node, data, "title")}>
+                {project.title}
+              </h3>
+              <p
+                className={cx(
+                  "text-sm leading-6 text-[var(--portfolio-card-muted)]",
+                  !node.style?.cardContentGap && "mt-3",
+                )}
+                style={getCardPartStyle(node, data, "body")}
+              >
+                {project.description}
+              </p>
+              <div className={cx("flex flex-wrap gap-2", !node.style?.cardContentGap && "mt-5")}>
                 {project.tags.map((tag) => (
-                  <span key={tag} className="rounded-full bg-[var(--portfolio-soft-accent)] px-3 py-1 text-xs font-bold text-[var(--portfolio-accent)]">
+                  <span
+                    key={tag}
+                    className="rounded-full bg-[var(--portfolio-soft-accent)] px-3 py-1 text-xs font-bold text-[var(--portfolio-card-accent)]"
+                    style={getCardPartStyle(node, data, "tag")}
+                  >
                     {tag}
                   </span>
                 ))}
               </div>
+              {renderNestedChildren(node)}
             </div>
           </article>
         ))}
@@ -558,11 +844,22 @@ export const PortfolioRenderer = ({
         <h2 className="text-[30px] font-black">{getPropText(node, "headline", data, "Skills")}</h2>
         <div className={cx("mt-6 flex flex-wrap", gapClasses[node.style?.gap || "sm"])}>
           {skills.map((skill) => (
-            <span key={skill} className="rounded-full border border-[var(--portfolio-border)] bg-[var(--portfolio-surface)] px-4 py-2 text-sm font-bold text-[var(--portfolio-text)] transition hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]">
+            <span
+              key={skill}
+              className={cx(
+                "inline-flex items-center text-sm font-bold transition hover:border-[var(--portfolio-card-accent)] hover:text-[var(--portfolio-card-accent)]",
+                getCardClasses(node, { paddingY: "sm", paddingX: "md", radius: "full", shadow: "none" }),
+              )}
+              style={{
+                ...getCardStyle(node, template, data),
+                ...getCardPartStyle(node, data, "tag"),
+              }}
+            >
               {skill}
             </span>
           ))}
         </div>
+        {renderNestedChildren(node)}
       </div>
     );
   };
@@ -575,15 +872,49 @@ export const PortfolioRenderer = ({
         <h2 className="text-[30px] font-black">{getPropText(node, "headline", data, "Experience")}</h2>
         <div className="mt-7 space-y-5">
           {experiences.map((experience) => (
-            <article key={`${experience.company}-${experience.period}`} className="border-l-4 border-[var(--portfolio-accent)] bg-[var(--portfolio-surface)] py-1 pl-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-black">{experience.role}</h3>
-                  <p className="mt-1 text-sm font-bold text-[var(--portfolio-accent)]">{experience.company}</p>
+            <article
+              key={`${experience.company}-${experience.period}`}
+              className={cx(
+                getCardClasses(node, { paddingY: "sm", paddingX: "md", radius: "none", shadow: "none" }),
+                "border-l-4",
+              )}
+              style={getCardStyle(node, template, data)}
+            >
+              {renderCardBackgroundLayer(node)}
+              <div className={getCardContentClasses(node)}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3
+                      className="text-lg font-black"
+                      style={getCardPartStyle(node, data, "title")}
+                    >
+                      {experience.role}
+                    </h3>
+                    <p
+                      className="mt-1 text-sm font-bold text-[var(--portfolio-card-accent)]"
+                      style={getCardPartStyle(node, data, "meta")}
+                    >
+                      {experience.company}
+                    </p>
+                  </div>
+                  <p
+                    className="text-sm font-semibold text-[var(--portfolio-card-muted)]"
+                    style={getCardPartStyle(node, data, "meta")}
+                  >
+                    {experience.period}
+                  </p>
                 </div>
-                <p className="text-sm font-semibold text-[var(--portfolio-muted)]">{experience.period}</p>
+                <p
+                  className={cx(
+                    "text-sm leading-6 text-[var(--portfolio-card-muted)]",
+                    !node.style?.cardContentGap && "mt-3",
+                  )}
+                  style={getCardPartStyle(node, data, "body")}
+                >
+                  {experience.summary}
+                </p>
+                {renderNestedChildren(node, "mt-4")}
               </div>
-              <p className="mt-3 text-sm leading-6 text-[var(--portfolio-muted)]">{experience.summary}</p>
             </article>
           ))}
         </div>
@@ -613,19 +944,21 @@ export const PortfolioRenderer = ({
     const aspectRatio = node.style?.aspectRatio || "video";
     const mediaFit = node.style?.mediaFit || "cover";
     const fitClass = mediaFit === "contain" ? "object-contain" : "object-cover";
+    const mediaHeight = getStyleValue(node.style?.imageHeight, data);
 
     return (
       <div
         className={cx(
           "overflow-hidden border border-[var(--portfolio-border)] bg-[var(--portfolio-surface)]",
-          aspectRatioClasses[aspectRatio],
+          !mediaHeight && aspectRatioClasses[aspectRatio],
           radiusClasses[node.style?.radius || "lg"],
           shadowClasses[node.style?.shadow || "sm"],
         )}
         style={{
-          borderColor: node.style?.borderColor,
-          borderWidth: node.style?.borderWidth,
+          borderColor: getStyleValue(node.style?.borderColor, data),
+          borderWidth: getStyleValue(node.style?.borderWidth, data),
           borderStyle: node.style?.borderStyle,
+          height: mediaHeight,
         }}
       >
         {mediaItem.type === "video" ? (
@@ -652,7 +985,10 @@ export const PortfolioRenderer = ({
               "h-full w-full bg-center bg-no-repeat transition duration-500 hover:scale-[1.02]",
               mediaFit === "contain" ? "bg-contain" : "bg-cover",
             )}
-            style={{ backgroundImage: `url(${mediaItem.src})` }}
+            style={{
+              backgroundImage: `url(${mediaItem.src})`,
+              backgroundPosition: node.style?.backgroundPosition || "center",
+            }}
           />
         ) : (
           <div className="flex h-full min-h-[220px] items-center justify-center px-5 text-center text-sm font-bold text-[var(--portfolio-muted)]">
@@ -687,6 +1023,7 @@ export const PortfolioRenderer = ({
             )}
           </figcaption>
         )}
+        {renderNestedChildren(node)}
       </figure>
     );
   };
@@ -706,7 +1043,7 @@ export const PortfolioRenderer = ({
             headline && "mt-6",
             "grid w-full",
             gapClasses[node.style?.gap || "md"],
-            getResponsiveGridClass("md:grid-cols-2 xl:grid-cols-3"),
+            getResponsiveColumnClass(node.style?.columns, 3),
           )}
         >
           {items.map((mediaItem, index) => (
@@ -727,6 +1064,7 @@ export const PortfolioRenderer = ({
             </figure>
           ))}
         </div>
+        {renderNestedChildren(node)}
       </div>
     );
   };
@@ -821,6 +1159,7 @@ export const PortfolioRenderer = ({
 
           {mediaItem && renderMediaSurface(mediaItem, node)}
         </div>
+        {renderNestedChildren(node)}
       </div>
     );
   };
@@ -834,33 +1173,64 @@ export const PortfolioRenderer = ({
     return (
       <div className="w-full">
         <h2 className="text-[30px] font-black">{getPropText(node, "headline", data, "Highlights")}</h2>
-        <div className={cx("mt-6 grid w-full", gapClasses[node.style?.gap || "md"], getResponsiveGridClass("md:grid-cols-2"))}>
+        <div
+          className={cx(
+            "mt-6 grid w-full",
+            gapClasses[node.style?.gap || "md"],
+            getResponsiveColumnClass(node.style?.columns, 2),
+            node.style?.cardWidth && "justify-items-center",
+          )}
+        >
           {items.map((item, index) => (
             <article
               key={`${String(item[titleKey] || "item")}-${index}`}
-              className="rounded-xl border border-[var(--portfolio-border)] bg-[var(--portfolio-surface)] p-5 transition hover:-translate-y-1 hover:shadow-lg"
+              className={cx(
+                getCardClasses(node, { paddingY: "md", paddingX: "md", radius: "xl", shadow: "none" }),
+                "transition hover:-translate-y-1 hover:shadow-lg",
+              )}
+              style={getCardStyle(node, template, data)}
             >
-              {item[metaKey] && (
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--portfolio-accent)]">
-                  {item[metaKey]}
-                </p>
-              )}
-              <h3 className="mt-2 text-lg font-black">
-                {item[titleKey] || `Item ${index + 1}`}
-              </h3>
-              {item[descriptionKey] && (
-                <p className="mt-3 text-sm leading-6 text-[var(--portfolio-muted)]">
-                  {item[descriptionKey]}
-                </p>
-              )}
-              {item.url && (
-                <a
-                  href={item.url}
-                  className="mt-4 inline-flex text-sm font-bold text-[var(--portfolio-accent)]"
+              {renderCardBackgroundLayer(node)}
+              <div className={getCardContentClasses(node)}>
+                {item[metaKey] && (
+                  <p
+                    className="text-xs font-black uppercase tracking-[0.16em] text-[var(--portfolio-card-accent)]"
+                    style={getCardPartStyle(node, data, "meta")}
+                  >
+                    {item[metaKey]}
+                  </p>
+                )}
+                <h3
+                  className={cx("text-lg font-black", !node.style?.cardContentGap && "mt-2")}
+                  style={getCardPartStyle(node, data, "title")}
                 >
-                  Open
-                </a>
-              )}
+                  {item[titleKey] || `Item ${index + 1}`}
+                </h3>
+                {item[descriptionKey] && (
+                  <p
+                    className={cx(
+                      "text-sm leading-6 text-[var(--portfolio-card-muted)]",
+                      !node.style?.cardContentGap && "mt-3",
+                    )}
+                    style={getCardPartStyle(node, data, "body")}
+                  >
+                    {item[descriptionKey]}
+                  </p>
+                )}
+                {item.url && (
+                  <a
+                    href={item.url}
+                    className={cx(
+                      "inline-flex text-sm font-bold text-[var(--portfolio-card-accent)]",
+                      !node.style?.cardContentGap && "mt-4",
+                    )}
+                    style={getCardPartStyle(node, data, "meta")}
+                  >
+                    Open
+                  </a>
+                )}
+                {renderNestedChildren(node, "mt-4")}
+              </div>
             </article>
           ))}
         </div>
@@ -869,31 +1239,34 @@ export const PortfolioRenderer = ({
   };
 
   const renderContact = (node: PortfolioTemplateNode) => (
-    <div
-      className={cx(
-        "grid w-full gap-8",
-        !isBuilder && "md:grid-cols-[minmax(0,1fr)_auto] md:items-end",
-        isBuilder && viewport !== "mobile" && "grid-cols-[minmax(0,1fr)_auto] items-end",
-      )}
-    >
-      <div>
-        <h2 className="text-[34px] font-black leading-tight">
-          {getPropText(node, "headline", data, "Let us work together.")}
-        </h2>
-        <p className="mt-4 max-w-[680px] text-base leading-7 opacity-80">
-          {getPropText(node, "body", data)}
-        </p>
-      </div>
-      <div className="flex flex-col gap-3 text-sm font-bold">
-        <a href={`mailto:${data.profile.email}`} className="rounded-full bg-white px-5 py-3 text-[#090a0b] transition hover:-translate-y-0.5">
-          {data.profile.email}
-        </a>
-        {data.profile.socialLinks.map((link) => (
-          <a key={link.label} href={link.url} className="opacity-80 transition hover:opacity-100">
-            {link.label}
+    <div className="w-full">
+      <div
+        className={cx(
+          "grid w-full gap-8",
+          !isBuilder && "md:grid-cols-[minmax(0,1fr)_auto] md:items-end",
+          isBuilder && viewport !== "mobile" && "grid-cols-[minmax(0,1fr)_auto] items-end",
+        )}
+      >
+        <div>
+          <h2 className="text-[34px] font-black leading-tight">
+            {getPropText(node, "headline", data, "Let us work together.")}
+          </h2>
+          <p className="mt-4 max-w-[680px] text-base leading-7 opacity-80">
+            {getPropText(node, "body", data)}
+          </p>
+        </div>
+        <div className="flex flex-col gap-3 text-sm font-bold">
+          <a href={`mailto:${data.profile.email}`} className="rounded-full bg-white px-5 py-3 text-[#090a0b] transition hover:-translate-y-0.5">
+            {data.profile.email}
           </a>
-        ))}
+          {data.profile.socialLinks.map((link) => (
+            <a key={link.label} href={link.url} className="opacity-80 transition hover:opacity-100">
+              {link.label}
+            </a>
+          ))}
+        </div>
       </div>
+      {renderNestedChildren(node)}
     </div>
   );
 
@@ -943,13 +1316,15 @@ export const PortfolioRenderer = ({
       <div
         className={cx(
           "relative w-full overflow-hidden",
+          node.style?.marginY && marginYClasses[node.style.marginY],
+          node.style?.marginX && marginXClasses[node.style.marginX],
           node.style?.paddingY && (isBuilder ? builderPaddingYClasses : paddingYClasses)[node.style.paddingY],
           node.style?.paddingX && (isBuilder ? builderPaddingXClasses : paddingXClasses)[node.style.paddingX],
           node.style?.maxWidth && maxWidthClasses[node.style.maxWidth],
           radiusClasses[node.style?.radius || "none"],
           shadowClasses[node.style?.shadow || "none"],
         )}
-        style={getNodeStyle(node, template)}
+        style={getNodeStyle(node, template, data)}
       >
         {backgroundLayerStyle && (
           <div
