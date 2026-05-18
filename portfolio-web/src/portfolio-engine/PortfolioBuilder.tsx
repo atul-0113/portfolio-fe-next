@@ -210,7 +210,11 @@ export default function PortfolioPage() {
 }
 `;
 
-export const PortfolioBuilder = () => {
+type PortfolioBuilderProps = {
+  hideEditorSidebar?: boolean;
+};
+
+export const PortfolioBuilder = ({ hideEditorSidebar = false }: PortfolioBuilderProps) => {
   const [template, setTemplate] = useState<PortfolioTemplateSchema>(() =>
     cloneTemplate(starterPortfolioTemplates[0]),
   );
@@ -972,8 +976,18 @@ export const PortfolioBuilder = () => {
         </p>
       )}
 
-      <div className="grid gap-4 xl:grid-cols-[330px_minmax(0,1fr)]">
-        <aside className="flex min-h-[620px] flex-col overflow-hidden rounded-lg border border-[#c7c4d8] bg-white xl:h-[calc(100vh-180px)]">
+      <div
+        className={cx(
+          "grid gap-4",
+          hideEditorSidebar ? "xl:grid-cols-1" : "xl:grid-cols-[330px_minmax(0,1fr)]",
+        )}
+      >
+        <aside
+          className={cx(
+            "min-h-[620px] flex-col overflow-hidden rounded-lg border border-[#c7c4d8] bg-white xl:h-[calc(100vh-180px)]",
+            hideEditorSidebar ? "hidden" : "flex",
+          )}
+        >
           <div className="grid grid-cols-5 border-b border-[#c7c4d8] bg-[#f8f9fa] p-2">
             {[
               { id: "components", label: "Add", icon: <FiLayers size={16} /> },
