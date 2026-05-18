@@ -3,6 +3,12 @@ import { Resume, ResumeResponse } from "@/types/api";
 
 type ResumeRecord = Record<string, unknown>;
 type ResumeApiResponse = ResumeResponse | Resume | null | undefined;
+export interface AnalyzeResumePayload {
+  file: File;
+  email?: string;
+  target_role?: string;
+  jobDescription?: string;
+}
 
 const isRecord = (value: unknown): value is ResumeRecord =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -329,3 +335,31 @@ export const deleteResume = async (id: string) => {
 };
 
 export type SaveResumePayload = Resume;
+
+export const analyzeResume = async ({
+  file,
+  email,
+  target_role,
+  jobDescription,
+}: AnalyzeResumePayload) => {
+  const formData = new FormData();
+
+  formData.append("resume", file);
+
+  if (email?.trim()) {
+    formData.append("email", email);
+  }
+
+  if (target_role?.trim()) {
+    formData.append("target_role", target_role);
+  }
+
+  if (jobDescription?.trim()) {
+    formData.append(
+      "job_description",
+      jobDescription,
+    );
+  }
+
+  return api.post("resumes/analyze", formData, undefined, true);
+};

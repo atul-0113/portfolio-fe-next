@@ -72,7 +72,7 @@ export const AdminRoutes: RouteTypes[] = [
   },
   {
     menuHeading: "Platform",
-    routeName: "/dashboard",
+    routeName: "/ats-analyzer",
     menuName: "ATS Analyzer",
     subMenuNames: [],
     requiredRoles: ["USER", "ADMIN"],
